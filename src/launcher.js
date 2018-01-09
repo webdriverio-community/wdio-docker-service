@@ -1,18 +1,6 @@
-'use strict';
-
-var _fsExtra = require('fs-extra');
-
-var _fsExtra2 = _interopRequireDefault(_fsExtra);
-
-var _docker = require('./utils/docker');
-
-var _docker2 = _interopRequireDefault(_docker);
-
-var _getFilePath = require('./utils/getFilePath');
-
-var _getFilePath2 = _interopRequireDefault(_getFilePath);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+import fs from 'fs-extra';
+import Docker from './utils/docker';
+import getFilePath from './utils/getFilePath';
 
 const DEFAULT_LOG_FILENAME = 'docker-log.txt';
 
@@ -35,27 +23,29 @@ class DockerLauncher {
                 command,
                 healthCheck,
                 image,
-                options
+                options,
             }
         } = config;
 
         const Logger = coloredLogs ? require('./utils/color-logger') : console;
 
-        this.docker = new _docker2.default(image, {
+        this.docker = new Docker(image, {
             args,
             command,
             debug,
             healthCheck,
-            options
+            options,
         }, Logger);
 
-        return this.docker.run().then(() => {
-            if (typeof this.dockerLogs === 'string') {
-                this._redirectLogStream();
-            }
-        }).catch(err => {
-            console.error(err.message);
-        });
+        return this.docker.run()
+            .then(() => {
+                if (typeof this.dockerLogs === 'string') {
+                    this._redirectLogStream();
+                }
+            })
+            .catch((err) => {
+                console.error(err.message);
+            });
     }
 
     onComplete() {
@@ -63,12 +53,12 @@ class DockerLauncher {
     }
 
     _redirectLogStream() {
-        const logFile = (0, _getFilePath2.default)(this.dockerLogs, DEFAULT_LOG_FILENAME);
+        const logFile = getFilePath(this.dockerLogs, DEFAULT_LOG_FILENAME);
 
         // ensure file & directory exists
-        _fsExtra2.default.ensureFileSync(logFile);
+        fs.ensureFileSync(logFile);
 
-        const logStream = _fsExtra2.default.createWriteStream(logFile, { flags: 'w' });
+        const logStream = fs.createWriteStream(logFile, { flags: 'w' });
 
         this.docker.process.stdout.pipe(logStream);
         this.docker.process.stderr.pipe(logStream);
@@ -76,4 +66,3 @@ class DockerLauncher {
 }
 
 module.exports = DockerLauncher;
-//# sourceMappingURL=launcher.js.map

@@ -4,7 +4,10 @@
   "description": "WebdriverIO service to start and stop docker container (for Selenium and more)",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prepublish": "npm prune && npm run build",
+    "build": "babel src --out-dir lib -s > /dev/null",
+    "test": "eslint -c .eslintrc.json src/**/*.js && mocha --require babel-register test/unit/**/*Spec.js",
+    "test:integration": "npm run build && wdio test/integration/wdio.conf.js"
   },
   "keywords": [
     "webdriverio",
@@ -16,11 +19,24 @@
   "author": "Simon Tsvilik",
   "license": "MIT",
   "devDependencies": {
-    "eslint": "^4.3.0",
-    "gulp": "^3.9.1"
+    "babel": "^6.23.0",
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-register": "^6.26.0",
+    "chai": "^4.1.2",
+    "eslint": "^4.15.0",
+    "gulp": "^3.9.1",
+    "mocha": "^4.1.0",
+    "sinon": "^4.1.4",
+    "wdio-mocha-framework": "^0.5.12",
+    "webdriverio": "^4.9.11"
   },
   "dependencies": {
-    "dockerode": "^2.5.0",
-    "fs-extra": "^4.0.0"
-  }
+    "chalk": "^2.3.0",
+    "fs-extra": "^5.0.0",
+    "node-fetch": "^1.7.3"
+  },
+  "contributors": [
+    "Simon Tsvilik <webdevsimon@gmail.com>"
+  ]
 }
