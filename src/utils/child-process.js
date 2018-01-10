@@ -11,13 +11,15 @@ export function runProcess(cmd) {
     return new Promise((resolve, reject) => {
         const commands = cmd.split(SPACE);
         const [app, ...args] = commands;
-        const process = spawn(app, args);
+        const childProcess = spawn(app, args);
 
-        process.on('error', (err) => {
+        childProcess.on('error', (err) => {
             reject(err);
         });
 
-        resolve(process);
+        process.nextTick(() => {
+            resolve(childProcess);
+        });
     });
 }
 
@@ -30,15 +32,15 @@ export function runCommand(cmd) {
     return new Promise((resolve, reject) => {
         const commands = cmd.split(SPACE);
         const [app, ...args] = commands;
-        const process = spawn(app, args);
+        const childProcess = spawn(app, args);
 
-        process.on('error', (err) => {
+        childProcess.on('error', (err) => {
             reject(err);
         });
 
-        process.on('close', (code) => {
+        childProcess.on('close', (code) => {
             if (!code) {
-                resolve(process);
+                resolve(childProcess);
                 return;
             }
 
