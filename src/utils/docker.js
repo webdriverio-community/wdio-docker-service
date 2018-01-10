@@ -4,6 +4,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import Ping from './ping';
 import { runCommand, runProcess } from './child-process';
+import { EventEmitter } from 'events';
 
 const SPACE = ' ';
 const INSPECT_DOCKER_INTERVAL = 500;
@@ -16,7 +17,7 @@ const DEFAULT_OPTIONS = {
 /**
  * @class {Docker} Provides functionality to run docker container
  */
-class Docker {
+class Docker extends EventEmitter {
     /**
      * @param {String} image Docker image/tag name
      * @param {Boolean} debug Enables logging
@@ -26,6 +27,8 @@ class Docker {
      * @param {Object} logger Color logger or console
      */
     constructor(image, { debug = false, options = {}, command, args }, logger) {
+        super();
+
         this.args = args;
         this.cidfile = path.join(process.cwd(), `${ image.replace(/\W+/g, '_') }.cid`);
         this.command = command;
@@ -71,6 +74,7 @@ class Docker {
             })
             .then(process => {
                 this.process = process;
+                this.emit('processCreated');
 
                 if (this.debug) {
                     this.process.stdout.on('data', (data) => {

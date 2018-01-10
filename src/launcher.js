@@ -37,12 +37,13 @@ class DockerLauncher {
             options,
         }, Logger);
 
+        if (typeof this.dockerLogs === 'string') {
+            this.docker.once('processCreated', () => {
+                this._redirectLogStream();
+            });
+        }
+
         return this.docker.run()
-            .then(() => {
-                if (typeof this.dockerLogs === 'string') {
-                    this._redirectLogStream();
-                }
-            })
             .catch((err) => {
                 console.error(err.message);
             });
