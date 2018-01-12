@@ -1,4 +1,4 @@
-WDIO Docker Service [![Build Status](https://travis-ci.org/stsvilik/wdio-docker-service.svg?branch=tests%2Fchild-process)](https://travis-ci.org/stsvilik/wdio-docker-service)
+WDIO Docker Service [![Maintainability](https://api.codeclimate.com/v1/badges/fa04188e6558671dbd9e/maintainability)](https://codeclimate.com/github/stsvilik/wdio-docker-service/maintainability) [![Build Status](https://travis-ci.org/stsvilik/wdio-docker-service.svg?branch=tests%2Fchild-process)](https://travis-ci.org/stsvilik/wdio-docker-service)
 ===
 
 This service is intended for use with [WebdriverIO](http://webdriver.io/) and it helps run functional/integration tests 
