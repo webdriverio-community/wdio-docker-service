@@ -7,7 +7,8 @@
     "prepublish": "npm prune && npm run build",
     "build": "babel src --out-dir lib -s > /dev/null",
     "test": "eslint -c .eslintrc.json src/**/*.js && mocha --require babel-register test/unit/**/*Spec.js",
-    "test:integration": "npm run build && wdio test/integration/wdio.conf.js"
+    "test:integration": "npm run build && wdio test/integration/wdio.conf.js",
+    "coverage": "nyc --reporter=lcov npm test"
   },
   "keywords": [
     "webdriverio",
@@ -27,6 +28,7 @@
     "eslint": "^4.15.0",
     "gulp": "^3.9.1",
     "mocha": "^4.1.0",
+    "nyc": "^11.4.1",
     "sinon": "^4.1.4",
     "wdio-mocha-framework": "^0.5.12",
     "webdriverio": "^4.9.11"
@@ -38,5 +40,15 @@
   },
   "contributors": [
     "Simon Tsvilik <webdevsimon@gmail.com>"
-  ]
+  ],
+  "nyc": {
+    "include": [
+      "src/**/*.js"
+    ],
+    "require": [
+      "babel-register"
+    ],
+    "sourceMap": false,
+    "instrument": false
+  }
 }
