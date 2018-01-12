@@ -2,6 +2,13 @@
   "name": "wdio-docker-service",
   "version": "1.0.0",
   "description": "WebdriverIO service to start and stop docker container (for Selenium and more)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stsvilik/wdio-docker-service.git"
+  },
+  "bugs": {
+    "url": "https://github.com/stsvilik/wdio-docker-service/issues"
+  },
   "main": "index.js",
   "scripts": {
     "prepublish": "npm prune && npm run build",
