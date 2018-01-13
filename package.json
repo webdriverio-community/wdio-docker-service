@@ -14,7 +14,7 @@
     "prepublish": "npm prune && npm run build",
     "build": "babel src --out-dir lib -s > /dev/null",
     "test": "eslint -c .eslintrc.json src/**/*.js && mocha --require babel-register test/unit/**/*Spec.js",
-    "test:integration": "npm run build && wdio test/integration/wdio.conf.js",
+    "test:integration": "npm run build && wdio test/integration/docker-selenium/wdio.conf.js && wdio test/integration/docker-app/wdio.conf.js",
     "coverage": "nyc --reporter=lcov npm test"
   },
   "keywords": [
@@ -38,6 +38,8 @@
     "nyc": "^11.4.1",
     "sinon": "^4.1.4",
     "wdio-mocha-framework": "^0.5.12",
+    "wdio-selenium-standalone-service": "0.0.9",
+    "wdio-spec-reporter": "^0.1.3",
     "webdriverio": "^4.9.11"
   },
   "dependencies": {
