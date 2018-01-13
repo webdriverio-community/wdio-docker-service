@@ -13,6 +13,11 @@ function deepMerge(dest = {}, ...sources) {
                 return;
             }
 
+            if (typeof value === 'object' && typeof acc[key] === 'object') {
+                deepMerge(acc[key], value);
+                return;
+            }
+
             acc[key] = value;
         });
 
