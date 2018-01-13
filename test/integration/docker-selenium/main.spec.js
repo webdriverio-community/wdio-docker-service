@@ -2,7 +2,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-describe('webdriverio', function () {
+describe('when using Docker to run Selenium', function () {
     it('should run a test', function () {
         browser.url('/');
         assert.equal(browser.getTitle(), 'WebdriverIO - WebDriver bindings for Node.js');

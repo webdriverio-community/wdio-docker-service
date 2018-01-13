@@ -1,7 +1,7 @@
 exports.config = {
     host: 'localhost',
     specs: [
-        './test/integration/*.spec.js'
+        './test/integration/docker-selenium/*.spec.js'
     ],
 
     capabilities: [{
@@ -10,7 +10,7 @@ exports.config = {
 
     debug: false,
     sync: true,
-    logLevel: 'verbose',
+    // logLevel: 'verbose',
     coloredLogs: true,
 
     baseUrl: 'http://webdriver.io',
@@ -23,9 +23,9 @@ exports.config = {
     mochaOpts: {
         ui: 'bdd'
     },
-
+    reporters: ['spec'],
     services: [
-        require('../../launcher')
+        require('../../../launcher')
     ],
     dockerLogs: './',
     dockerOptions: {
