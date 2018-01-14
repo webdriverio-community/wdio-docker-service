@@ -22,17 +22,19 @@ class Docker extends EventEmitter {
      * @param {String} image Docker image/tag name
      * @param {Boolean} debug Enables logging
      * @param {Object} options
+     * @param {String} [healthCheck] Url that verifies that service is running
      * @param {String} [command] docker command that follows image/tag name
      * @param {String} [args] docker args that follow image/tag name
      * @param {Object} logger Color logger or console
      */
-    constructor(image, { debug = false, options = {}, command, args }, logger) {
+    constructor(image, { debug = false, options = {}, healthCheck, command, args }, logger) {
         super();
 
         this.args = args;
         this.cidfile = path.join(process.cwd(), `${ image.replace(/\W+/g, '_') }.cid`);
         this.command = command;
         this.debug = debug;
+        this.healthCheck = healthCheck || DEFAULT_HEALTH_CHECK;
         this.image = image;
         this.logger = logger;
         this.process = null;
@@ -125,11 +127,9 @@ class Docker extends EventEmitter {
             let attempts = 0;
             let pollstatus = null;
 
-            const { healthCheck = DEFAULT_HEALTH_CHECK } = this.options;
-
             const poll = () => {
-                if (healthCheck !== undefined) {
-                    Ping(healthCheck)
+                if (this.healthCheck !== undefined) {
+                    Ping(this.healthCheck)
                         .then(() => {
                             resolve();
                             clearTimeout(pollstatus);

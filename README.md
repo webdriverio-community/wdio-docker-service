@@ -113,6 +113,11 @@ Any command you may want to pass into container. Corresponds to `[COMMAND]` in D
 
 Type: `String`
 
+### onDockerReady
+A callback method which is called when Docker application is ready. Readiness is determined by ability to ping `healthCheck` url.
+
+Type: `Function`
+
 ### dockerLogs
 Path to where logs from docker container should be stored
 
