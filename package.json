@@ -11,11 +11,12 @@
   },
   "main": "index.js",
   "scripts": {
-    "prepublish": "npm prune && npm run build",
+    "prepare": "npm prune && npm run build",
     "build": "babel src --out-dir lib -s > /dev/null",
-    "test": "eslint -c .eslintrc.json src/**/*.js && mocha --require babel-register --recursive test/unit",
-    "test:integration": "npm run build && wdio test/integration/docker-selenium/wdio.conf.js && wdio test/integration/docker-app/wdio.conf.js",
-    "coverage": "nyc --reporter=lcov npm test"
+    "test": "eslint -c .eslintrc.json src/**/*.js && npm run test:unit && npm run test:integration",
+    "test:unit": "nyc mocha --require babel-register --recursive ./test/unit",
+    "test:integration": "wdio test/integration/docker-selenium/wdio.conf.js && wdio test/integration/docker-app/wdio.conf.js",
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "keywords": [
     "webdriverio",
@@ -32,6 +33,7 @@
     "babel-preset-env": "^1.6.1",
     "babel-register": "^6.26.0",
     "chai": "^4.1.2",
+    "coveralls": "^3.0.0",
     "eslint": "^4.15.0",
     "gulp": "^3.9.1",
     "mocha": "^4.1.0",
@@ -51,13 +53,18 @@
     "Simon Tsvilik <webdevsimon@gmail.com>"
   ],
   "nyc": {
-    "include": [
-      "src/**/*.js"
+    "exclude": [
+      "index.js",
+      "launcher.js",
+      "lib",
+      "test"
     ],
     "require": [
       "babel-register"
     ],
     "sourceMap": false,
-    "instrument": false
+    "instrument": true,
+    "cache": false,
+    "all": true
   }
 }
