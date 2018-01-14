@@ -24,8 +24,13 @@ class DockerLauncher {
                 healthCheck,
                 image,
                 options,
-            }
+            },
+            onDockerReady
         } = config;
+
+        if (!image) {
+            return Promise.reject(new Error('dockerOptions.image is a required property'));
+        }
 
         const Logger = coloredLogs ? require('./utils/color-logger') : console;
 
@@ -44,13 +49,20 @@ class DockerLauncher {
         }
 
         return this.docker.run()
+            .then(() => {
+                if (typeof onDockerReady === 'function') {
+                    onDockerReady();
+                }
+            })
             .catch((err) => {
                 console.error(err.message);
             });
     }
 
     onComplete() {
-        return this.docker.stop();
+        if (this.docker) {
+            return this.docker.stop();
+        }
     }
 
     _redirectLogStream() {
