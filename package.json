@@ -13,7 +13,7 @@
   "scripts": {
     "prepublish": "npm prune && npm run build",
     "build": "babel src --out-dir lib -s > /dev/null",
-    "test": "eslint -c .eslintrc.json src/**/*.js && mocha --require babel-register test/unit/**/*Spec.js",
+    "test": "eslint -c .eslintrc.json src/**/*.js && mocha --require babel-register --recursive test/unit",
     "test:integration": "npm run build && wdio test/integration/docker-selenium/wdio.conf.js && wdio test/integration/docker-app/wdio.conf.js",
     "coverage": "nyc --reporter=lcov npm test"
   },
