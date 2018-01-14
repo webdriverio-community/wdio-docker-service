@@ -1,12 +1,22 @@
 env:
   global:
     - CC_TEST_REPORTER_ID=17f8fadda4b2b6209c8e9f36441887cac12f0cfcb1a7896b805966a7b0b954e0
-    
-language: node_js
 
+# Node setup
+language: node_js
 node_js:
   - '8'
 
+# Chrome addon
+addons:
+  chrome: stable
+
+# Docker service
+sudo: required
+services:
+  - docker
+
+# Caching
 cache:
   directories:
     - node_modules
@@ -17,7 +27,9 @@ before_script:
   - chmod +x ./cc-test-reporter
   - ./cc-test-reporter before-build
 
-script: npm test
+script:
+  - npm test
+  - npm run test:integration
 
 after_success: npm run coverage
 
