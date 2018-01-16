@@ -31,13 +31,12 @@ By default, Google Chrome, Firefox and PhantomJS are available when installed on
 In order to use the service you need to add `docker` to your service array:
 
 ```javascript
- // wdio.conf.js
- export.config = {
+// wdio.conf.js
+exports.config = {
    // ...
    services: ['docker'],
    // ...
- };
-
+};
 ```
 
 ## Options
@@ -125,6 +124,5 @@ Path to where logs from docker container should be stored
 
 Type: `String`
 
-## Testing Scenarios and Use Cases
-Please refer to our WIKI section for detailed information and examples. 
-
+## Testing Use Cases / Recipes
+Please visit our [Wiki](https://github.com/stsvilik/wdio-docker-service/wiki) for more details.
