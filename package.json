@@ -45,6 +45,7 @@
     "webdriverio": "^4.9.11"
   },
   "dependencies": {
+    "bluebird": "^3.5.1",
     "chalk": "^2.3.0",
     "fs-extra": "^5.0.0",
     "node-fetch": "^1.7.3"

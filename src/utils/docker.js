@@ -5,11 +5,11 @@ import path from 'path';
 import Ping from './ping';
 import { runCommand, runProcess } from './child-process';
 import { EventEmitter } from 'events';
+import Promise from 'bluebird';
 
 const SPACE = ' ';
 const INSPECT_DOCKER_INTERVAL = 500;
 const MAX_INSPECT_ATTEMPTS = 10;
-const DEFAULT_HEALTH_CHECK = 'http://localhost:4444';
 const DEFAULT_OPTIONS = {
     rm: true
 };
@@ -20,21 +20,25 @@ const DEFAULT_OPTIONS = {
 class Docker extends EventEmitter {
     /**
      * @param {String} image Docker image/tag name
-     * @param {Boolean} debug Enables logging
-     * @param {Object} options
+     * @param {Boolean} [debug] Enables logging
+     * @param {Object} [options] Docker run options
      * @param {String} [healthCheck] Url that verifies that service is running
      * @param {String} [command] docker command that follows image/tag name
      * @param {String} [args] docker args that follow image/tag name
      * @param {Object} logger Color logger or console
      */
-    constructor(image, { debug = false, options = {}, healthCheck, command, args }, logger) {
+    constructor(image, { debug = false, options = {}, healthCheck, command, args } = {}, logger = console) {
         super();
+
+        if (!image) {
+            throw new Error('Missing required image argument');
+        }
 
         this.args = args;
         this.cidfile = path.join(process.cwd(), `${ image.replace(/\W+/g, '_') }.cid`);
         this.command = command;
-        this.debug = debug;
-        this.healthCheck = healthCheck || DEFAULT_HEALTH_CHECK;
+        this.debug = Boolean(debug);
+        this.healthCheck = healthCheck;
         this.image = image;
         this.logger = logger;
         this.process = null;
@@ -111,6 +115,7 @@ class Docker extends EventEmitter {
             .then(() => {
                 if (this.process) {
                     this.process.kill();
+                    this.process = null;
                 }
 
                 this.debug && this.logger.info('Docker container has stopped');
@@ -222,7 +227,7 @@ class Docker extends EventEmitter {
     static serializeOption(key, value) {
         const prefix = key.length > 1 ? '--' : '-';
 
-        if (typeof value === 'boolean') {
+        if (typeof value === 'boolean' && value) {
             return `${prefix}${key}`;
         }
 
