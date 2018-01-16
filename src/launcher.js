@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import Docker from './utils/docker';
 import getFilePath from './utils/getFilePath';
+import Promise from 'bluebird';
 
 const DEFAULT_LOG_FILENAME = 'docker-log.txt';
 
