@@ -169,7 +169,7 @@ class Docker extends EventEmitter {
      * @private
      */
     _isImagePresent() {
-        return runCommand(`docker image inspect ${ this.image }`);
+        return runCommand(`docker inspect ${ this.image }`);
     }
 
     /**

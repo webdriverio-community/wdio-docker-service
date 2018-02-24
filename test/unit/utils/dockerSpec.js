@@ -410,7 +410,7 @@ describe('Docker', function () {
         it('must call runCommand', function () {
             const docker = new Docker('my-image');
             return docker._isImagePresent().then(() => {
-                expect(ChildProcess.runCommand.calledWith('docker image inspect my-image')).to.eql(true);
+                expect(ChildProcess.runCommand.calledWith('docker inspect my-image')).to.eql(true);
             });
         });
     });
