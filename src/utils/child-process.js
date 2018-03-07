@@ -12,7 +12,7 @@ export function runProcess(cmd) {
     return new Promise((resolve, reject) => {
         const commands = cmd.split(SPACE);
         const [app, ...args] = commands;
-        const childProcess = spawn(app, args, { stdio: 'ignore' });
+        const childProcess = spawn(app, args);
 
         childProcess.on('error', (err) => {
             reject(err);
