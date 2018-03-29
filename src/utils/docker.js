@@ -191,11 +191,11 @@ class Docker extends EventEmitter {
                 this.debug && this.logger.info('Shutting down running container');
                 return Docker.stopContainer(cid).then(() => Docker.removeContainer(cid));
             })
-            .finally(() => {
+            .catch(() => Promise.resolve())
+            .then(() => {
                 this.debug && this.logger.info('Cleaning up CID files');
                 return fs.remove(this.cidfile);
-            })
-            .catch(() => Promise.resolve());
+            });
     }
 
     /**
