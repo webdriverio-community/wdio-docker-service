@@ -22,12 +22,12 @@ class Docker extends EventEmitter {
      * @param {String} image Docker image/tag name
      * @param {Boolean} [debug] Enables logging
      * @param {Object} [options] Docker run options
-     * @param {String} [healthCheck] Url that verifies that service is running
+     * @param {String|Object} [healthCheck] Url that verifies that service is running
      * @param {String} [command] docker command that follows image/tag name
      * @param {String} [args] docker args that follow image/tag name
      * @param {Object} logger Color logger or console
      */
-    constructor(image, { debug = false, options = {}, healthCheck, command, args } = {}, logger = console) {
+    constructor(image, { debug = false, options = {}, healthCheck = {}, command, args } = {}, logger = console) {
         super();
 
         if (!image) {
@@ -42,6 +42,10 @@ class Docker extends EventEmitter {
         this.image = image;
         this.logger = logger;
         this.process = null;
+
+        if (typeof healthCheck === 'string') {
+            this.healthCheck = { url: healthCheck };
+        }
 
         this.options = deepMerge({
             cidfile: this.cidfile
@@ -128,13 +132,24 @@ class Docker extends EventEmitter {
      * @private
      */
     _reportWhenDockerIsRunning() {
-        return new Promise((resolve, reject) => {
-            let attempts = 0;
-            let pollstatus = null;
+        const {
+            url,
+            maxRetries = MAX_INSPECT_ATTEMPTS,
+            inspectInterval = INSPECT_DOCKER_INTERVAL,
+            startDelay = 0
+        } = this.healthCheck;
 
-            const poll = () => {
-                if (this.healthCheck !== undefined) {
-                    Ping(this.healthCheck)
+        if (url == undefined) {
+            return Promise.resolve();
+        }
+
+        return Promise.delay(startDelay)
+            .then(() => new Promise((resolve, reject) => {
+                let attempts = 0;
+                let pollstatus = null;
+
+                const poll = () => {
+                    Ping(url)
                         .then(() => {
                             resolve();
                             clearTimeout(pollstatus);
@@ -142,26 +157,19 @@ class Docker extends EventEmitter {
                         })
                         .catch((err) => {
                             attempts++;
-                            if (attempts >= MAX_INSPECT_ATTEMPTS) {
+                            if (attempts >= maxRetries) {
                                 clearTimeout(pollstatus);
                                 pollstatus = null;
                                 reject(err);
                                 return;
                             }
 
-                            pollstatus = setTimeout(poll, INSPECT_DOCKER_INTERVAL);
+                            pollstatus = setTimeout(poll, inspectInterval);
                         });
+                };
 
-                    return;
-                }
-
-                resolve();
-                clearTimeout(pollstatus);
-                pollstatus = null;
-            };
-
-            pollstatus = setTimeout(poll, INSPECT_DOCKER_INTERVAL);
-        });
+                pollstatus = setTimeout(poll, inspectInterval);
+            }));
     }
 
     /**

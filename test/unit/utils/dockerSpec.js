@@ -29,7 +29,7 @@ describe('Docker', function () {
                     expect(docker.cidfile).to.eql(cidfile);
                     expect(docker.command).to.eql(undefined);
                     expect(docker.debug).to.eql(false);
-                    expect(docker.healthCheck).to.eql(undefined);
+                    expect(docker.healthCheck).to.eql({});
                     expect(docker.logger).to.eql(console);
                     expect(docker.process).to.eql(null);
                     expect(docker.options).to.eql({
@@ -421,19 +421,16 @@ describe('Docker', function () {
 
             before(function () {
                 stub(pingDef, 'default').returns(Promise.reject());
-                spy(global, 'clearTimeout');
             });
 
             after(function () {
                 pingDef.default.restore();
-                global.clearTimeout.restore();
             });
 
             it('must resolve promise right away', function () {
                 const docker = new Docker('my-image');
 
                 return docker._reportWhenDockerIsRunning().then(() => {
-                    expect(global.clearTimeout.called).to.eql(true);
                     expect(pingDef.default.called).to.eql(false);
                 });
             });
@@ -458,6 +455,36 @@ describe('Docker', function () {
                 return docker._reportWhenDockerIsRunning().then(() => {
                     expect(global.clearTimeout.called).to.eql(true);
                     expect(pingDef.default.calledWith('http://localhost:8080')).to.eql(true);
+                });
+            });
+        });
+
+        context('when maxRetries is specified and url is unreachable', function () {
+            const pingDef = require('../../../src/utils/ping');
+
+            before(function () {
+                stub(pingDef, 'default').returns(Promise.reject());
+                spy(global, 'clearTimeout');
+            });
+
+            after(function () {
+                pingDef.default.restore();
+                global.clearTimeout.restore();
+            });
+
+            it('must Ping same number of times as maxRetries', function () {
+                const docker = new Docker('my-image', {
+                    healthCheck: {
+                        url: 'http://localhost:8080',
+                        maxRetries: 3
+                    }
+                });
+
+                this.timeout(15000);
+                
+                return docker._reportWhenDockerIsRunning().catch(() => {
+                    expect(global.clearTimeout.called).to.eql(true);
+                    expect(pingDef.default.calledThrice).to.eql(true);
                 });
             });
         });
