@@ -89,7 +89,7 @@ describe('DockerLauncher', function () {
 
                     return launcher.onPrepare({ dockerOptions })
                         .then(() => {
-                            expect(launcher.docker.healthCheck).to.eql('http://localhost:8000');
+                            expect(launcher.docker.healthCheck).to.eql({ url: 'http://localhost:8000' });
                         });
                 });
             });
