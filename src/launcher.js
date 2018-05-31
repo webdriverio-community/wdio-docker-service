@@ -56,7 +56,7 @@ class DockerLauncher {
                 }
             })
             .catch((err) => {
-                console.error(err.message);
+                debug && Logger.error(`Failed to run container: ${ err.message }`);
             });
     }
 

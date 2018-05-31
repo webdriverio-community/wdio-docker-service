@@ -107,7 +107,7 @@ class Docker extends EventEmitter {
                     return Promise.resolve();
                 }
 
-                this.debug && this.logger.error(`Failed to run container: ${ err.message }`);
+                throw err;
             });
     }
 
