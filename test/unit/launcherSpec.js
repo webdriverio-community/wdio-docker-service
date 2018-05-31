@@ -160,7 +160,7 @@ describe('DockerLauncher', function () {
         describe('@onDockerReady', function () {
             context('when onDockerReady is provided', function () {
                 const config = {
-                    onDockerReady: new spy(),
+                    onDockerReady: spy(),
                     dockerOptions: {
                         image: 'my-image'
                     }
@@ -170,6 +170,27 @@ describe('DockerLauncher', function () {
                     return launcher.onPrepare(config)
                         .then(() => {
                             expect(config.onDockerReady.called).to.eql(true);
+                        });
+                });
+            });
+
+            context('when docker run is rejected', function () {
+                const config = {
+                    onDockerReady: spy(),
+                    dockerOptions: {
+                        image: 'my-image'
+                    }
+                };
+
+                beforeEach(function () {
+                    Docker.prototype.run.restore();
+                    stub(Docker.prototype, 'run').returns(Promise.reject(new Error('Fail')));
+                });
+
+                it('must NOT call onDockerReady', function () {
+                    return launcher.onPrepare(config)
+                        .catch(() => {
+                            expect(config.onDockerReady.called).to.eql(false);
                         });
                 });
             });
@@ -248,7 +269,7 @@ describe('DockerLauncher', function () {
         context('when this.docker is present', function () {
             it('must call this.docker.stop', function () {
                 launcher.docker = {
-                    stop: new spy()
+                    stop: spy()
                 };
 
                 launcher.onComplete();
