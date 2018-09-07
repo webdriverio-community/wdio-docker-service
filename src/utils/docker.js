@@ -1,10 +1,10 @@
-import camelToDash from './camel-to-dash';
-import deepMerge from './deep-merge';
+import deepMerge from './deepMerge';
 import fs from 'fs-extra';
 import path from 'path';
 import Ping from './ping';
-import { runCommand, runProcess } from './child-process';
+import { runCommand, runProcess } from './childProcess';
 import { EventEmitter } from 'events';
+import serializeOptions from './optionsSerializer';
 import Promise from 'bluebird';
 
 const SPACE = ' ';
@@ -51,7 +51,7 @@ class Docker extends EventEmitter {
             cidfile: this.cidfile
         }, DEFAULT_OPTIONS, options);
 
-        const cmdChain = ['docker run'].concat(Docker.serializeOptions(this.options), [this.image]);
+        const cmdChain = ['docker run'].concat(serializeOptions(this.options), [this.image]);
 
         if (this.command) {
             cmdChain.push(this.command);
@@ -204,51 +204,6 @@ class Docker extends EventEmitter {
                 this.debug && this.logger.info('Cleaning up CID files');
                 return fs.remove(this.cidfile);
             });
-    }
-
-    /**
-     * @static
-     * @param {Object} opt Options to serialize
-     * @return {Array}
-     */
-    static serializeOptions(opt) {
-        return Object.keys(opt).reduce((acc, key) => {
-            const fixedKey = camelToDash(key);
-            const value = opt[key];
-            const option = Docker.serializeOption(fixedKey, value);
-            if (option) {
-                if (Array.isArray(option)) {
-                    return acc.concat(option);
-                }
-                acc.push(option);
-            }
-            return acc;
-        }, []);
-    }
-
-    /**
-     * @static
-     * @param {String} key
-     * @param {*} value
-     * @return {String|Array}
-     */
-    static serializeOption(key, value) {
-        const prefix = key.length > 1 ? '--' : '-';
-
-        if (typeof value === 'boolean' && value) {
-            return `${prefix}${key}`;
-        }
-
-        if (typeof value === 'string') {
-            return `${prefix}${key} ${value}`;
-        }
-
-        if (Array.isArray(value)) {
-            return value.reduce((acc, item) => {
-                acc.push(`${prefix}${key} ${item}`);
-                return acc;
-            }, []);
-        }
     }
 
     /**

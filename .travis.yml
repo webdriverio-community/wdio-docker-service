@@ -21,9 +21,6 @@ cache:
   directories:
     - node_modules
 
-before_install:
-  - npm i -g npm@6.3.0
-
 before_script:
   - npm ci
 

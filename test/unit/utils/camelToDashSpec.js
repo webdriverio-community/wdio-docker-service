@@ -1,4 +1,4 @@
-import camelToDash from '../../../src/utils/camel-to-dash';
+import camelToDash from '../../../src/utils/camelToDash';
 import { expect } from 'chai';
 
 describe('#camelToDash', function () {

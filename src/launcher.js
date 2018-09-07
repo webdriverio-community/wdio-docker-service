@@ -33,7 +33,7 @@ class DockerLauncher {
             return Promise.reject(new Error('dockerOptions.image is a required property'));
         }
 
-        const Logger = coloredLogs ? require('./utils/color-logger') : console;
+        const Logger = coloredLogs ? require('./utils/colorLogger') : console;
 
         this.docker = new Docker(image, {
             args,
