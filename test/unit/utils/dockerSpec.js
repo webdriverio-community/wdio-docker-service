@@ -3,7 +3,7 @@ import path from 'path';
 import { stub, spy } from 'sinon';
 import Docker from '../../../src/utils/docker';
 import fs from 'fs-extra';
-import * as ChildProcess from '../../../src/utils/child-process';
+import * as ChildProcess from '../../../src/utils/childProcess';
 import Promise from 'bluebird';
 
 describe('Docker', function () {
@@ -80,6 +80,21 @@ describe('Docker', function () {
                 it('must place both of them after image name where command is followed by args', function () {
                     const docker = new Docker('my-image', { command: 'test', args: '-foo' });
                     expect(docker.dockerRunCommand).to.eql(`docker run --cidfile ${ docker.cidfile } --rm my-image test -foo`);
+                });
+            });
+
+            context('when CWD contains spaces', function () {
+                beforeEach(function () {
+                    stub(process, 'cwd').returns('/User/johndoe/test dir/');
+                });
+
+                afterEach(function () {
+                    process.cwd.restore();
+                });
+
+                it('must escape cidfile path', function () {
+                    const docker = new Docker('my-image', { command: 'test', args: '-foo' });
+                    expect(docker.dockerRunCommand).to.eql('docker run --cidfile /User/johndoe/test\\ dir/my_image.cid --rm my-image test -foo');
                 });
             });
         });
@@ -253,73 +268,6 @@ describe('Docker', function () {
             return Docker.removeContainer('123').then(() => {
                 expect(ChildProcess.runCommand.calledWith('docker rm 123')).to.eql(true);
             });
-        });
-    });
-
-    describe('#serializeOption', function () {
-        describe('when a single letter option', function () {
-            context('and is a boolean', function () {
-                it('must serialize correctly', function () {
-                    const option = Docker.serializeOption('d', true);
-                    expect(option).to.eql('-d');
-                });
-            });
-
-            context('and is a string', function () {
-                it('must serialize correctly', function () {
-                    const option = Docker.serializeOption('d', 'boo');
-                    expect(option).to.eql('-d boo');
-                });
-            });
-
-            context('and is an array', function () {
-                it('must serialize correctly', function () {
-                    const option = Docker.serializeOption('d', ['foo=bar', 'bar=foo']);
-                    expect(option).to.eql(['-d foo=bar', '-d bar=foo']);
-                });
-            });
-        });
-
-        describe('when multiple-letter option', function () {
-            context('and is a boolean', function () {
-                it('must serialize correctly', function () {
-                    const option = Docker.serializeOption('foo', true);
-                    expect(option).to.eql('--foo');
-                });
-            });
-
-            context('and is a string', function () {
-                it('must serialize correctly', function () {
-                    const option = Docker.serializeOption('foo', 'boo');
-                    expect(option).to.eql('--foo boo');
-                });
-            });
-
-            context('and is an array', function () {
-                it('must serialize correctly', function () {
-                    const option = Docker.serializeOption('doo', ['foo=bar', 'bar=foo']);
-                    expect(option).to.eql(['--doo foo=bar', '--doo bar=foo']);
-                });
-            });
-        });
-    });
-
-    describe('#serializeOptions', function () {
-        it('must return an array of serialized options', function () {
-            const options = {
-                d: true,
-                foo: true,
-                boo: 'bop',
-                e: ['123=345', '678=901']
-            };
-
-            expect(Docker.serializeOptions(options)).to.deep.eql([
-                '-d',
-                '--foo',
-                '--boo bop',
-                '-e 123=345',
-                '-e 678=901'
-            ]);
         });
     });
 

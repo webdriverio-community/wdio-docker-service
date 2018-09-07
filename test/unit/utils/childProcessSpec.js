@@ -1,7 +1,7 @@
 import ChildProcess from 'child_process';
 import MockChildProcess from '../../mocks/MockChildProcess';
 import { expect } from 'chai';
-import { runProcess, runCommand } from '../../../src/utils/child-process';
+import { runProcess, runCommand } from '../../../src/utils/childProcess';
 import { stub } from 'sinon';
 
 

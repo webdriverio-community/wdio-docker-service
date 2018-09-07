@@ -1,4 +1,4 @@
-import deepMerge from '../../../src/utils/deep-merge';
+import deepMerge from '../../../src/utils/deepMerge';
 import { expect } from 'chai';
 
 describe('#deepMerge', function () {

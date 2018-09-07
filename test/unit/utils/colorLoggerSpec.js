@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { stub } from 'sinon';
 
 describe('Color Logger', function () {
-    const ColorLogger = require('../../../src/utils/color-logger');
+    const ColorLogger = require('../../../src/utils/colorLogger');
 
     beforeEach(function () {
         stub(ColorLogger, '_writeLog');

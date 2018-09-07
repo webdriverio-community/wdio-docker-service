@@ -3,7 +3,7 @@ import { stub, spy } from 'sinon';
 import Docker from '../../src/utils/docker';
 
 describe('DockerLauncher', function () {
-    const ColorLogger = require('../../src/utils/color-logger');
+    const ColorLogger = require('../../src/utils/colorLogger');
     const DockerLauncher = require('../../src/launcher');
     let launcher;
 
