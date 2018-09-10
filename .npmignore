@@ -7,4 +7,4 @@ PULL_REQUEST_TEMPLATE.md
 .babelrc
 .editorconfig
 .travis.yml
-*log*
+docker-log.txt
