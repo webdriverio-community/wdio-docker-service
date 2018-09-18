@@ -9,7 +9,7 @@ describe('Child Process utils', function () {
     describe('#runProcess', function () {
         context('when command fails to execute', function () {
             before(function () {
-                stub(ChildProcess, 'spawn').callsFake((cmd, args) => {
+                stub(ChildProcess, 'exec').callsFake((cmd, args) => {
                     const mp = new MockChildProcess(cmd, args);
 
                     process.nextTick(() => {
@@ -21,11 +21,11 @@ describe('Child Process utils', function () {
             });
 
             after(function () {
-                ChildProcess.spawn.restore();
+                ChildProcess.exec.restore();
             });
 
             it('must reject with error', function () {
-                return runProcess('foo', ['bar'])
+                return runProcess('foo bar')
                     .catch((err) => {
                         expect(err).to.be.instanceOf(Error);
                     });
@@ -34,14 +34,14 @@ describe('Child Process utils', function () {
 
         context('when command is successful', function () {
             before(function () {
-                stub(ChildProcess, 'spawn').callsFake((cmd, args) => {
+                stub(ChildProcess, 'exec').callsFake((cmd, args) => {
                     const mp = new MockChildProcess(cmd, args);
                     return mp;
                 });
             });
 
             after(function () {
-                ChildProcess.spawn.restore();
+                ChildProcess.exec.restore();
             });
 
             it('must resolve promise with child process', function () {
@@ -56,8 +56,8 @@ describe('Child Process utils', function () {
     describe('#runCommand', function () {
         context('when command fails to execute', function () {
             before(function () {
-                stub(ChildProcess, 'spawn').callsFake((cmd, args) => {
-                    const mp = new MockChildProcess(cmd, args);
+                stub(ChildProcess, 'exec').callsFake((cmd) => {
+                    const mp = new MockChildProcess(cmd);
 
                     process.nextTick(() => {
                         mp.mockError();
@@ -68,11 +68,11 @@ describe('Child Process utils', function () {
             });
 
             after(function () {
-                ChildProcess.spawn.restore();
+                ChildProcess.exec.restore();
             });
 
             it('must reject with error', function () {
-                return runCommand('foo', ['bar'])
+                return runCommand('foo bar')
                     .catch((err) => {
                         expect(err).to.be.instanceOf(Error);
                     });
@@ -81,8 +81,8 @@ describe('Child Process utils', function () {
 
         context('when command returns non 0 return code', function () {
             before(function () {
-                stub(ChildProcess, 'spawn').callsFake((cmd, args) => {
-                    const mp = new MockChildProcess(cmd, args);
+                stub(ChildProcess, 'exec').callsFake((cmd) => {
+                    const mp = new MockChildProcess(cmd);
 
                     process.nextTick(() => {
                         mp.mockClose(123);
@@ -93,22 +93,22 @@ describe('Child Process utils', function () {
             });
 
             after(function () {
-                ChildProcess.spawn.restore();
+                ChildProcess.exec.restore();
             });
 
             it('must reject with error', function () {
-                return runCommand('foo', ['bar'])
+                return runCommand('foo bar')
                     .catch((err) => {
                         expect(err).to.be.instanceOf(Error);
-                        expect(err.message).to.eql('Command \'foo\' exited with code 123');
+                        expect(err.message).to.eql('Command \'foo bar\' exited with code 123');
                     });
             });
         });
 
         context('when command runs successfully', function () {
             before(function () {
-                stub(ChildProcess, 'spawn').callsFake((cmd, args) => {
-                    const mp = new MockChildProcess(cmd, args);
+                stub(ChildProcess, 'exec').callsFake((cmd) => {
+                    const mp = new MockChildProcess(cmd);
 
                     process.nextTick(() => {
                         mp.mockClose(0);
@@ -119,11 +119,11 @@ describe('Child Process utils', function () {
             });
 
             after(function () {
-                ChildProcess.spawn.restore();
+                ChildProcess.exec.restore();
             });
 
             it('must resolve promise with child process', function () {
-                return runCommand('foo', ['bar'])
+                return runCommand('foo bar')
                     .then((childProcess) => {
                         expect(childProcess).to.be.instanceOf(MockChildProcess);
                     });

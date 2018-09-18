@@ -134,14 +134,17 @@ class Docker extends EventEmitter {
     _reportWhenDockerIsRunning() {
         const {
             url,
+            cmd,
             maxRetries = MAX_INSPECT_ATTEMPTS,
             inspectInterval = INSPECT_DOCKER_INTERVAL,
             startDelay = 0
         } = this.healthCheck;
 
-        if (url == undefined) {
+        if (url == undefined && cmd == undefined) {
             return Promise.resolve();
         }
+
+        let healthCheckFn = url ? () => { return Ping(url); }: () => { return runCommand(cmd); };
 
         return Promise.delay(startDelay)
             .then(() => new Promise((resolve, reject) => {
@@ -149,7 +152,7 @@ class Docker extends EventEmitter {
                 let pollstatus = null;
 
                 const poll = () => {
-                    Ping(url)
+                    healthCheckFn()
                         .then(() => {
                             resolve();
                             clearTimeout(pollstatus);

@@ -81,13 +81,14 @@ Type: `String|Object`
 
 Options for Object use:
 - *url* - url to an app running inside your container
+- *cmd* - command to check health of an app running inside your container
 - *maxRetries* - number of retries until healthcheck fails. Default: 10
 - *inspectInterval* - interval between each retry in ms. Default: 500
 - *startDelay* - initial delay to begin healthcheck in ms. Default: 0
 
 Example 1 (String): `healthCheck: 'http://localhost:4444'`
 
-Example 2 (Object):
+Example 2 (Object with `url` check):
 
 ```javascript
 healthCheck: {
@@ -97,6 +98,21 @@ healthCheck: {
     startDelay: 2000
 }
 ```
+
+Example 3 (Object with `cmd` check):
+
+When the Docker image implements a [`HEALTHCHECK`](https://docs.docker.com/engine/reference/builder/#healthcheck) you can use following configuration to wait until health status is `healthy`
+
+```javascript
+healthCheck: {
+    cmd: '[ $(docker inspect --format=\'{{json .State.Health.Status}}\' my-image) == "\\"healthy\\"" ] || exit 1',
+    maxRetries: 10,
+    inspectInterval: 1000
+}
+```
+
+
+
 
 ### dockerOptions.options
 Map of options used by `docker run` command. For more details on `run` command click [here](https://docs.docker.com/edge/engine/reference/commandline/run/).
