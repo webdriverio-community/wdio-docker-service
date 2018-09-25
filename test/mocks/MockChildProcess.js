@@ -2,10 +2,11 @@ import { EventEmitter } from 'events';
 import { Readable } from 'stream';
 
 class MockChildProcess extends EventEmitter {
-    constructor(cmd) {
+    constructor(cmd, args = []) {
         super();
 
         this.cmd = cmd;
+        this.args = args;
 
         this.stdout = new Readable({
             read() {

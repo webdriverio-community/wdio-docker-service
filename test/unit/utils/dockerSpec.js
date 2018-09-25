@@ -385,137 +385,79 @@ describe('Docker', function () {
         });
 
         context('when healthCheck is provided', function () {
+            const pingDef = require('../../../src/utils/ping');
 
-            context('when check is done via a url', function () {
-
-                context('when url is provided', function () {
-                    const pingDef = require('../../../src/utils/ping');
-
-                    before(function () {
-                        stub(pingDef, 'default').returns(Promise.resolve());
-                        spy(global, 'clearTimeout');
-                    });
-
-                    after(function () {
-                        pingDef.default.restore();
-                        global.clearTimeout.restore();
-                    });
-
-                    it('must Ping the healthCheck url', function () {
-                        const docker = new Docker('my-image', { healthCheck: 'http://localhost:8080' });
-
-                        return docker._reportWhenDockerIsRunning().then(() => {
-                            expect(global.clearTimeout.called).to.eql(true);
-                            expect(pingDef.default.calledWith('http://localhost:8080')).to.eql(true);
-                        });
-                    });
-                });
-
-                context('when maxRetries is specified and url is unreachable', function () {
-                    const pingDef = require('../../../src/utils/ping');
-
-                    before(function () {
-                        stub(pingDef, 'default').returns(Promise.reject());
-                        spy(global, 'clearTimeout');
-                    });
-
-                    after(function () {
-                        pingDef.default.restore();
-                        global.clearTimeout.restore();
-                    });
-
-                    it('must Ping same number of times as maxRetries', function () {
-                        const docker = new Docker('my-image', {
-                            healthCheck: {
-                                url: 'http://localhost:8080',
-                                maxRetries: 3
-                            }
-                        });
-
-                        this.timeout(15000);
-                        
-                        return docker._reportWhenDockerIsRunning().catch(() => {
-                            expect(global.clearTimeout.called).to.eql(true);
-                            expect(pingDef.default.calledThrice).to.eql(true);
-                        });
-                    });
-                });
-
-                context('when healthCheck is provided but is unreachable', function () {
-                    const pingDef = require('../../../src/utils/ping');
-
-                    before(function () {
-                        stub(pingDef, 'default').returns(Promise.reject());
-                        spy(global, 'clearTimeout');
-                    });
-
-                    after(function () {
-                        pingDef.default.restore();
-                        global.clearTimeout.restore();
-                    });
-
-                    it('must attempt to ping healthCheck url and then exit', function () {
-                        const docker = new Docker('my-image', { healthCheck: 'http://localhost:8080' });
-
-                        this.timeout(15000);
-
-                        return docker._reportWhenDockerIsRunning().catch(() => {
-                            expect(global.clearTimeout.called).to.eql(true);
-                            expect(pingDef.default.calledWith('http://localhost:8080')).to.eql(true);
-                        });
-                    });
-                });
+            before(function () {
+                stub(pingDef, 'default').returns(Promise.resolve());
+                spy(global, 'clearTimeout');
             });
 
-            context('when check is done via a command', function () {
+            after(function () {
+                pingDef.default.restore();
+                global.clearTimeout.restore();
+            });
 
-                context('when cmd is provided', function () {
-                    before(function () {
-                        stub(ChildProcess, 'runCommand').returns(Promise.resolve());
-                        spy(global, 'clearTimeout');
-                    });
-            
-                    after(function () {
-                        ChildProcess.runCommand.restore();
-                        global.clearTimeout.restore();
-                    });
+            it('must Ping the healthCheck url', function () {
+                const docker = new Docker('my-image', { healthCheck: 'http://localhost:8080' });
 
-                    it('must execute the healthCheck cmd', function () {
-                        const docker = new Docker('my-image', { healthCheck: { 'cmd': 'docker inspect my-image' }});
+                return docker._reportWhenDockerIsRunning().then(() => {
+                    expect(global.clearTimeout.called).to.eql(true);
+                    expect(pingDef.default.calledWith('http://localhost:8080')).to.eql(true);
+                });
+            });
+        });
 
-                        return docker._reportWhenDockerIsRunning().then(() => {
-                            expect(global.clearTimeout.called).to.eql(true);
-                            expect(ChildProcess.runCommand.calledWith('docker inspect my-image')).to.eql(true);
-                        });
-                    });
+        context('when maxRetries is specified and url is unreachable', function () {
+            const pingDef = require('../../../src/utils/ping');
+
+            before(function () {
+                stub(pingDef, 'default').returns(Promise.reject());
+                spy(global, 'clearTimeout');
+            });
+
+            after(function () {
+                pingDef.default.restore();
+                global.clearTimeout.restore();
+            });
+
+            it('must Ping same number of times as maxRetries', function () {
+                const docker = new Docker('my-image', {
+                    healthCheck: {
+                        url: 'http://localhost:8080',
+                        maxRetries: 3
+                    }
                 });
 
-                context('when maxRetries is specified and url is unreachable', function () {
-                    before(function () {
-                        stub(ChildProcess, 'runCommand').returns(Promise.reject());
-                        spy(global, 'clearTimeout');
-                    });
-            
-                    after(function () {
-                        ChildProcess.runCommand.restore();
-                        global.clearTimeout.restore();
-                    });
+                this.timeout(15000);
+                
+                return docker._reportWhenDockerIsRunning().catch(() => {
+                    expect(global.clearTimeout.called).to.eql(true);
+                    expect(pingDef.default.calledThrice).to.eql(true);
+                });
+            });
+        });
 
-                    it('must execute healthCheck cmd same number of times as maxRetries', function () {
-                        const docker = new Docker('my-image', {
-                            healthCheck: {
-                                cmd: 'docker inspect my-images',
-                                maxRetries: 3
-                            }
-                        });
+        context('when healthCheck is provided but is unreachable', function () {
+            const pingDef = require('../../../src/utils/ping');
 
-                        this.timeout(15000);
-                        
-                        return docker._reportWhenDockerIsRunning().catch(() => {
-                            expect(global.clearTimeout.called).to.eql(true);
-                            expect(ChildProcess.runCommand.calledThrice).to.eql(true);
-                        });
-                    });
+            before(function () {
+                stub(pingDef, 'default').returns(Promise.reject());
+                spy(global, 'clearTimeout');
+            });
+
+            after(function () {
+                pingDef.default.restore();
+                global.clearTimeout.restore();
+            });
+
+            it('must attempt to ping healthCheck url and then exit', function () {
+                const docker = new Docker('my-image', { healthCheck: 'http://localhost:8080' });
+
+                this.timeout(15000);
+
+                return docker._reportWhenDockerIsRunning().catch(() => {
+                    expect(global.clearTimeout.called).to.eql(true);
+                    expect(pingDef.default.calledWith('http://localhost:8080')).to.eql(true);
                 });
             });
         });

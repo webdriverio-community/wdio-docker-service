@@ -1,5 +1,7 @@
-import { exec } from 'child_process';
+import { spawn } from 'child_process';
 import Promise from 'bluebird';
+
+const SPACE = ' ';
 
 /**
  * Runs continuous shell process
@@ -8,7 +10,9 @@ import Promise from 'bluebird';
  */
 export function runProcess(cmd) {
     return new Promise((resolve, reject) => {
-        const childProcess = exec(cmd);
+        const commands = cmd.split(SPACE);
+        const [app, ...args] = commands;
+        const childProcess = spawn(app, args);
 
         childProcess.on('error', (err) => {
             reject(err);
@@ -27,7 +31,9 @@ export function runProcess(cmd) {
  */
 export function runCommand(cmd) {
     return new Promise((resolve, reject) => {
-        let childProcess = exec(cmd, { shell: true });
+        const commands = cmd.split(SPACE);
+        const [app, ...args] = commands;
+        const childProcess = spawn(app, args, { stdio: 'ignore' });
 
         childProcess.on('error', (err) => {
             reject(err);
