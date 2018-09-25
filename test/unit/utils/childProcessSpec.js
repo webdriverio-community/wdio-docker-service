@@ -124,8 +124,8 @@ describe('Child Process utils', function () {
 
             it('must resolve promise with child process', function () {
                 return runCommand('foo', ['bar'])
-                    .then((childProcess) => {
-                        expect(childProcess).to.be.instanceOf(MockChildProcess);
+                    .then((output) => {
+                        expect(output).to.be.a.string;
                     });
             });
         });

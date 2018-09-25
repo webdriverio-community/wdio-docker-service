@@ -98,6 +98,8 @@ healthCheck: {
 }
 ```
 
+**REMARK:** If your Docker image defines a [`HEALTHCHECK`](https://docs.docker.com/engine/reference/builder/#healthcheck) the module will automatically poll check the health status of the container until it's `healthy` (no need to set `url` option)
+
 ### dockerOptions.options
 Map of options used by `docker run` command. For more details on `run` command click [here](https://docs.docker.com/edge/engine/reference/commandline/run/).
 

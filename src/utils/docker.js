@@ -79,6 +79,13 @@ class Docker extends EventEmitter {
                     });
             })
             .then(() => {
+                this.debug && this.logger.info(`Checking if image '${ this.image }' has a healthcheck`);
+                return this._hasImageHealthcheck();
+            })
+            .then((hasHealthcheck) => {
+                this.debug && this.logger.info(`Docker image '${ this.image }' does ${ hasHealthcheck ? '' : 'not ' }embed a healthcheck`);
+                this.healthCheck.inspect = hasHealthcheck;
+
                 this.debug && this.logger.info(`Launching docker image '${ this.image }'`);
                 return runProcess(this.dockerRunCommand);
             })
@@ -136,12 +143,15 @@ class Docker extends EventEmitter {
             url,
             maxRetries = MAX_INSPECT_ATTEMPTS,
             inspectInterval = INSPECT_DOCKER_INTERVAL,
-            startDelay = 0
+            startDelay = 0,
+            inspect = false
         } = this.healthCheck;
 
-        if (url == undefined) {
+        if (url == undefined && !inspect) {
             return Promise.resolve();
         }
+
+        let pollCheckFn = inspect ? () => { return this._checkContainerHealth(); } : () => { return Ping(url); };
 
         return Promise.delay(startDelay)
             .then(() => new Promise((resolve, reject) => {
@@ -149,7 +159,7 @@ class Docker extends EventEmitter {
                 let pollstatus = null;
 
                 const poll = () => {
-                    Ping(url)
+                    pollCheckFn()
                         .then(() => {
                             resolve();
                             clearTimeout(pollstatus);
@@ -170,6 +180,52 @@ class Docker extends EventEmitter {
 
                 pollstatus = setTimeout(poll, inspectInterval);
             }));
+    }
+
+    /**
+     * @return {Promise}
+     * @private
+     */
+    _hasImageHealthcheck() {
+        return new Promise((resolve, reject) => {
+            runCommand(`docker inspect ${ this.image }`).then(function(output) {
+                try {
+                    let inspectJson = JSON.parse(output);
+                    resolve(inspectJson[0].ContainerConfig.hasOwnProperty('Healthcheck'));
+                }
+                catch(err) {
+                    reject('Could not determine if image has a healtcheck');
+                }
+            });
+        });
+    }
+
+    /**
+     * @return {Promise}
+     * @private
+     */
+    _checkContainerHealth() {
+        return new Promise((resolve, reject) => {
+            fs.readFile(this.cidfile)
+                .then((cid) => {
+                    runCommand(`docker inspect ${ cid }`).then(function(output) {
+                        try {
+                            let inspectJson = JSON.parse(output);
+                            let health = inspectJson[0].State.Health.Status;
+
+                            if (health === 'healthy') {
+                                resolve();
+                            }
+                            else {
+                                reject(`Container status not healthy (current: ${health})`);
+                            }
+                        }
+                        catch(err) {
+                            reject('Cannot determine container health status');
+                        }
+                    });
+                });
+        });
     }
 
     /**

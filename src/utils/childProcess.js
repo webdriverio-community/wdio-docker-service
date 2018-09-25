@@ -33,7 +33,12 @@ export function runCommand(cmd) {
     return new Promise((resolve, reject) => {
         const commands = cmd.split(SPACE);
         const [app, ...args] = commands;
-        const childProcess = spawn(app, args, { stdio: 'ignore' });
+        const childProcess = spawn(app, args);
+        let stdout = '';
+
+        childProcess.stdout.on('data', (data) => {
+            stdout += data;
+        });
 
         childProcess.on('error', (err) => {
             reject(err);
@@ -41,7 +46,7 @@ export function runCommand(cmd) {
 
         childProcess.on('close', (code) => {
             if (!code) {
-                resolve(childProcess);
+                resolve(stdout);
                 return;
             }
 
