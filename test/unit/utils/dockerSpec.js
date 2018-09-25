@@ -138,12 +138,14 @@ describe('Docker', function () {
 
         beforeEach(function () {
             stub(ChildProcess, 'runProcess').returns(Promise.resolve(mockProcess));
+            stub(Docker.prototype, '_hasImageHealthcheck').returns(Promise.resolve());
             stub(Docker.prototype, '_removeStaleContainer').returns(Promise.resolve());
             stub(Docker.prototype, '_reportWhenDockerIsRunning').returns(Promise.resolve());
         });
 
         afterEach(function () {
             ChildProcess.runProcess.restore();
+            Docker.prototype._hasImageHealthcheck.restore();
             Docker.prototype._removeStaleContainer.restore();
             Docker.prototype._reportWhenDockerIsRunning.restore();
         });
