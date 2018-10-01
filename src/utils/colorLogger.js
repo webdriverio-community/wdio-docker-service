@@ -1,7 +1,5 @@
 import chalk from 'chalk';
 
-const SPACE = ' ';
-
 const COLORS = {
     INFO: chalk.hex('#6495ED'),
     ERROR: chalk.keyword('crimson'),
@@ -11,19 +9,19 @@ const COLORS = {
 
 const ColorLogger = {
     info(...msg) {
-        this._writeLog('info', msg.join(SPACE), COLORS.INFO);
+        this._writeLog('info', msg, COLORS.INFO);
     },
 
     error(...msg) {
-        this._writeLog('error', msg.join(SPACE), COLORS.ERROR);
+        this._writeLog('error', msg, COLORS.ERROR);
     },
 
     warn(...msg) {
-        this._writeLog('warn', msg.join(SPACE), COLORS.WARN);
+        this._writeLog('warn', msg, COLORS.WARN);
     },
 
     log(...msg) {
-        this._writeLog('log', msg.join(SPACE));
+        this._writeLog('log', msg);
     },
 
     /**
@@ -33,7 +31,8 @@ const ColorLogger = {
      * @private
      */
     _writeLog(method, msg, color = COLORS.LOG) {
-        console[method](color(msg));
+        const [first, ...rest] = msg;
+        console[method](color(first), ...rest);
     }
 };
 

@@ -1,6 +1,6 @@
 {
   "name": "wdio-docker-service",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "description": "WebdriverIO service to start and stop docker container (for Selenium and more)",
   "repository": {
     "type": "git",
@@ -13,9 +13,9 @@
   "scripts": {
     "prepare": "npm prune && npm run build",
     "build": "rm -rf lib && babel src --out-dir lib -s > /dev/null",
-    "test": "eslint -c .eslintrc.json src/**/*.js && npm run test:unit && npm run test:integration",
+    "test": "eslint -c .eslintrc.json src test && npm run test:unit && npm run test:integration",
     "test:unit": "nyc mocha --require babel-register --recursive ./test/unit",
-    "test:integration": "wdio test/integration/docker-selenium/wdio.conf.js && wdio test/integration/docker-app/wdio.conf.js",
+    "test:integration": "npm run build && wdio test/integration/docker-selenium/wdio.conf.js && wdio test/integration/docker-app/wdio.conf.js",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "keywords": [
@@ -32,13 +32,13 @@
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.7.0",
     "babel-register": "^6.26.0",
-    "chai": "^4.1.2",
+    "chai": "^4.2.0",
     "coveralls": "^3.0.2",
-    "eslint": "^5.5.0",
+    "eslint": "^5.6.1",
     "gulp": "^3.9.1",
     "mocha": "^5.2.0",
     "nyc": "^13.0.1",
-    "sinon": "^6.2.0",
+    "sinon": "^6.3.4",
     "wdio-mocha-framework": "^0.6.3",
     "wdio-selenium-standalone-service": "0.0.10",
     "wdio-spec-reporter": "^0.1.5",

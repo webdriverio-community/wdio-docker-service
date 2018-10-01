@@ -5,6 +5,7 @@ import Docker from '../../../src/utils/docker';
 import fs from 'fs-extra';
 import * as ChildProcess from '../../../src/utils/childProcess';
 import Promise from 'bluebird';
+import DockerEventsListener from '../../../src/utils/dockerEventsListener';
 
 describe('Docker', function () {
 
@@ -101,17 +102,19 @@ describe('Docker', function () {
     });
 
     describe('#stop', function () {
-        const killSpy = new spy();
+        const killSpy = spy();
         let mockProcess = {
             kill: killSpy
         };
 
         before(function () {
             stub(Docker.prototype, '_removeStaleContainer').returns(Promise.resolve());
+            stub(DockerEventsListener.prototype, 'disconnect');
         });
 
         after(function () {
             Docker.prototype._removeStaleContainer.restore();
+            DockerEventsListener.prototype.disconnect.restore();
         });
 
         it('must must process', function () {
@@ -128,24 +131,26 @@ describe('Docker', function () {
     describe('#run', function () {
         const mockProcess = {
             stdout: {
-                on: new spy()
+                on: spy()
             },
             stderr: {
-                on: new spy()
+                on: spy()
             },
-            kill: new spy()
+            kill: spy()
         };
 
         beforeEach(function () {
             stub(ChildProcess, 'runProcess').returns(Promise.resolve(mockProcess));
             stub(Docker.prototype, '_removeStaleContainer').returns(Promise.resolve());
             stub(Docker.prototype, '_reportWhenDockerIsRunning').returns(Promise.resolve());
+            stub(DockerEventsListener.prototype, 'connect');
         });
 
         afterEach(function () {
             ChildProcess.runProcess.restore();
             Docker.prototype._removeStaleContainer.restore();
             Docker.prototype._reportWhenDockerIsRunning.restore();
+            DockerEventsListener.prototype.connect.restore();
         });
 
         context('when image is not yet pulled (first time)', function () {
@@ -189,7 +194,7 @@ describe('Docker', function () {
             });
 
             it('must emit processCreated event', function () {
-                const processCreatedSpy = new spy();
+                const processCreatedSpy = spy();
                 const docker = new Docker('my-image');
                 docker.on('processCreated', processCreatedSpy);
 
@@ -429,7 +434,7 @@ describe('Docker', function () {
                 });
 
                 this.timeout(15000);
-                
+
                 return docker._reportWhenDockerIsRunning().catch(() => {
                     expect(global.clearTimeout.called).to.eql(true);
                     expect(pingDef.default.calledThrice).to.eql(true);
