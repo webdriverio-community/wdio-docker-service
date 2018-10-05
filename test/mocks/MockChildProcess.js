@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import { Readable } from 'stream';
+import { spy } from 'sinon';
 
 class MockChildProcess extends EventEmitter {
     constructor(cmd, args = []) {
@@ -19,6 +20,8 @@ class MockChildProcess extends EventEmitter {
                 this.push(null);
             }
         });
+
+        this.kill = spy();
     }
 
     mockError(error = 'mock error') {

@@ -6,6 +6,7 @@ import { runCommand, runProcess } from './childProcess';
 import { EventEmitter } from 'events';
 import serializeOptions from './optionsSerializer';
 import Promise from 'bluebird';
+import DockerEventsListener from './dockerEventsListener';
 
 const SPACE = ' ';
 const INSPECT_DOCKER_INTERVAL = 500;
@@ -42,6 +43,7 @@ class Docker extends EventEmitter {
         this.image = image;
         this.logger = logger;
         this.process = null;
+        this.dockerEventsListener = new DockerEventsListener(debug, logger);
 
         if (typeof healthCheck === 'string') {
             this.healthCheck = { url: healthCheck };
@@ -69,6 +71,15 @@ class Docker extends EventEmitter {
      */
     run() {
         this.debug && this.logger.log(`Docker command: ${ this.dockerRunCommand }`);
+        this.dockerEventsListener.connect({
+            filter: `image=${this.image}`
+        });
+
+        if (this.debug) {
+            this.dockerEventsListener.once('image.pull', (event) => {
+                this.logger.info('Pulling image:', JSON.stringify(event, null, 4));
+            });
+        }
 
         return this._removeStaleContainer()
             .then(() => {
@@ -93,6 +104,14 @@ class Docker extends EventEmitter {
 
                     this.process.stderr.on('data', (data) => {
                         this.logger.error(data);
+                    });
+
+                    this.dockerEventsListener.once('container.start', (event) => {
+                        this.logger.info('Container started:', JSON.stringify(event, null, 4));
+                    });
+
+                    this.dockerEventsListener.once('container.stop', (event) => {
+                        this.logger.info('Container stopped:', JSON.stringify(event, null, 4));
                     });
                 }
 
@@ -123,6 +142,7 @@ class Docker extends EventEmitter {
                 }
 
                 this.debug && this.logger.info('Docker container has stopped');
+                this.dockerEventsListener.disconnect();
             });
     }
 
@@ -139,7 +159,7 @@ class Docker extends EventEmitter {
             startDelay = 0
         } = this.healthCheck;
 
-        if (url == undefined) {
+        if (url === undefined) {
             return Promise.resolve();
         }
 

@@ -8,7 +8,7 @@ exports.config = {
         browserName: 'chrome'
     }],
 
-    debug: false,
+    debug: true,
     sync: true,
     // logLevel: 'verbose',
     coloredLogs: true,
