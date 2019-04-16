@@ -11,10 +11,11 @@
   },
   "main": "index.js",
   "scripts": {
-    "prepare": "npm prune && npm run build",
-    "build": "rm -rf lib && babel src --out-dir lib -s > /dev/null",
+    "prepare": "rm -rf ./lib",
+    "postinstall": "npm run build",
+    "build": "babel ./src --out-dir ./lib -s",
     "test": "eslint -c .eslintrc.json src test && npm run test:unit && npm run test:integration",
-    "test:unit": "nyc mocha --require babel-register --recursive ./test/unit",
+    "test:unit": "nyc mocha --require @babel/register --recursive ./test/unit",
     "test:integration": "npm run build && wdio test/integration/docker-selenium/wdio.conf.js && wdio test/integration/docker-app/wdio.conf.js",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
@@ -28,16 +29,16 @@
   "author": "Simon Tsvilik",
   "license": "MIT",
   "devDependencies": {
-    "babel": "^6.23.0",
-    "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.7.0",
-    "babel-register": "^6.26.0",
+    "@babel/cli": "^7.4.3",
+    "@babel/core": "^7.4.3",
+    "@babel/preset-env": "^7.4.3",
+    "@babel/register": "^7.4.0",
     "chai": "^4.2.0",
     "coveralls": "^3.0.2",
-    "eslint": "^5.6.1",
+    "eslint": "^5.16.0",
     "gulp": "^3.9.1",
     "mocha": "^5.2.0",
-    "nyc": "^13.0.1",
+    "nyc": "^13.3.0",
     "sinon": "^6.3.4",
     "wdio-mocha-framework": "^0.6.3",
     "wdio-selenium-standalone-service": "0.0.10",
@@ -61,7 +62,7 @@
       "test"
     ],
     "require": [
-      "babel-register"
+      "@babel/register"
     ],
     "sourceMap": false,
     "instrument": true,

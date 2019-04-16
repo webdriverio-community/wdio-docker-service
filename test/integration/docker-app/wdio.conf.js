@@ -1,4 +1,5 @@
 const path = require('path');
+const DockerLauncher = require('../../../lib/launcher');
 
 exports.config = {
     host: 'localhost',
@@ -31,7 +32,7 @@ exports.config = {
     reporters: ['spec'],
     services: [
         'selenium-standalone',
-        require('../../../launcher')
+        new DockerLauncher()
     ],
     dockerLogs: './',
     dockerOptions: {

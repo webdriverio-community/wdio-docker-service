@@ -1,3 +1,5 @@
+const DockerLauncher = require('../../../lib/launcher');
+
 exports.config = {
     host: 'localhost',
     specs: [
@@ -25,7 +27,7 @@ exports.config = {
     },
     reporters: ['spec'],
     services: [
-        require('../../../launcher')
+        new DockerLauncher()
     ],
     dockerLogs: './',
     dockerOptions: {

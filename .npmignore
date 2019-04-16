@@ -4,7 +4,6 @@
 CONTRIBUTING.md
 PULL_REQUEST_TEMPLATE.md
 .coveralls.yml
-.babelrc
 .editorconfig
 .travis.yml
 docker-log.txt
