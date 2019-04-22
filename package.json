@@ -11,8 +11,8 @@
   },
   "main": "index.js",
   "scripts": {
-    "prepare": "rm -rf ./lib",
-    "postinstall": "npm run build",
+    "prepublishOnly": "rm -rf ./lib && npm run build",
+    "pos": "npm run build",
     "build": "babel ./src --out-dir ./lib -s",
     "test": "eslint -c .eslintrc.json src test && npm run test:unit && npm run test:integration",
     "test:unit": "nyc mocha --require @babel/register --recursive ./test/unit",
@@ -36,14 +36,13 @@
     "chai": "^4.2.0",
     "coveralls": "^3.0.2",
     "eslint": "^5.16.0",
-    "gulp": "^3.9.1",
     "mocha": "^5.2.0",
     "nyc": "^13.3.0",
     "sinon": "^6.3.4",
     "wdio-mocha-framework": "^0.6.3",
     "wdio-selenium-standalone-service": "0.0.10",
     "wdio-spec-reporter": "^0.1.5",
-    "webdriverio": "^4.13.2"
+    "webdriverio": "^5.7.15"
   },
   "dependencies": {
     "bluebird": "^3.5.2",
