@@ -12,7 +12,7 @@
   "main": "index.js",
   "scripts": {
     "prepublishOnly": "rm -rf ./lib && npm run build",
-    "pos": "npm run build",
+    "postinstall": "npm run build",
     "build": "babel ./src --out-dir ./lib -s",
     "test": "eslint -c .eslintrc.json src test && npm run test:unit && npm run test:integration",
     "test:unit": "nyc mocha --require @babel/register --recursive ./test/unit",
