@@ -5,7 +5,7 @@ const path = require('path');
 describe('when using Docker to run Selenium', function () {
     it('should run a test', function () {
         browser.url('/');
-        assert.equal(browser.getTitle(), 'WebdriverIO - WebDriver bindings for Node.js');
+        assert.equal(browser.getTitle(), 'WebdriverIO · Next-gen WebDriver test framework for Node.js');
     });
 
     it('should have created a log file', function () {

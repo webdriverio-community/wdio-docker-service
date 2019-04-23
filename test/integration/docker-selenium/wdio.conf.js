@@ -1,9 +1,11 @@
+const DockerLauncher = require('../../../lib/launcher');
+
 exports.config = {
     host: 'localhost',
     specs: [
         './test/integration/docker-selenium/*.spec.js'
     ],
-
+    runner: 'local',
     capabilities: [{
         browserName: 'chrome'
     }],
@@ -25,7 +27,7 @@ exports.config = {
     },
     reporters: ['spec'],
     services: [
-        require('../../../launcher')
+        [new DockerLauncher()]
     ],
     dockerLogs: './',
     dockerOptions: {
