@@ -42,9 +42,9 @@
     "chai": "^4.2.0",
     "coveralls": "^3.0.2",
     "eslint": "^5.16.0",
-    "mocha": "^5.2.0",
-    "nyc": "^13.3.0",
-    "sinon": "^6.3.4",
+    "mocha": "^6.1.4",
+    "nyc": "^14.0.0",
+    "sinon": "^7.3.2",
     "webdriverio": "^5.7.15"
   },
   "dependencies": {
