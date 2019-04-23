@@ -5,7 +5,7 @@ exports.config = {
     specs: [
         './test/integration/docker-selenium/*.spec.js'
     ],
-
+    runner: 'local',
     capabilities: [{
         browserName: 'chrome'
     }],
@@ -27,7 +27,7 @@ exports.config = {
     },
     reporters: ['spec'],
     services: [
-        new DockerLauncher()
+        [new DockerLauncher()]
     ],
     dockerLogs: './',
     dockerOptions: {

@@ -6,11 +6,11 @@ exports.config = {
     specs: [
         './test/integration/docker-app/*.spec.js'
     ],
-
+    runner: 'local',
     capabilities: [{
         browserName: 'chrome',
-        chromeOptions: {
-            args: ['--headless', '--disable-gpu']
+        'goog:chromeOptions': {
+            args: ['--headless', '--disable-gpu'],
         }
     }],
 
@@ -32,7 +32,7 @@ exports.config = {
     reporters: ['spec'],
     services: [
         'selenium-standalone',
-        new DockerLauncher()
+        [new DockerLauncher()]
     ],
     dockerLogs: './',
     dockerOptions: {
