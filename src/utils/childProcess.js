@@ -1,5 +1,4 @@
 import { spawn } from 'child_process';
-import Promise from 'bluebird';
 
 const SPACE = ' ';
 

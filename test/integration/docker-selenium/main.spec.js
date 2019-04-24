@@ -1,16 +1,17 @@
-const assert = require('assert');
+const { expect } = require('chai');
 const fs = require('fs');
 const path = require('path');
 
-describe('when using Docker to run Selenium', function () {
-    it('should run a test', function () {
-        browser.url('/');
-        assert.equal(browser.getTitle(), 'WebdriverIO · Next-gen WebDriver test framework for Node.js');
+describe('when using Docker to run Selenium', function() {
+    it('should run a test', async function() {
+        await browser.url('/');
+        const title = await browser.getTitle();
+        expect(title).to.eql('WebdriverIO · Next-gen WebDriver test framework for Node.js');
     });
 
-    it('should have created a log file', function () {
+    it('should have created a log file', function() {
         const filePath = path.join(process.cwd(), 'docker-log.txt');
         const file = fs.statSync(filePath);
-        assert(file.size > 0);
+        expect(file.size).to.be.above(0);
     });
 });

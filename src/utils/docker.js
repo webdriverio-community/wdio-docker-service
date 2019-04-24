@@ -5,7 +5,6 @@ import Ping from './ping';
 import { runCommand, runProcess } from './childProcess';
 import { EventEmitter } from 'events';
 import serializeOptions from './optionsSerializer';
-import Promise from 'bluebird';
 import DockerEventsListener from './dockerEventsListener';
 
 const SPACE = ' ';
@@ -21,14 +20,13 @@ const DEFAULT_OPTIONS = {
 class Docker extends EventEmitter {
     /**
      * @param {String} image Docker image/tag name
-     * @param {Boolean} [debug] Enables logging
      * @param {Object} [options] Docker run options
      * @param {String|Object} [healthCheck] Url that verifies that service is running
      * @param {String} [command] docker command that follows image/tag name
      * @param {String} [args] docker args that follow image/tag name
      * @param {Object} logger Color logger or console
      */
-    constructor(image, { debug = false, options = {}, healthCheck = {}, command, args } = {}, logger = console) {
+    constructor(image, { options = {}, healthCheck = {}, command, args } = {}, logger = console) {
         super();
 
         if (!image) {
@@ -38,12 +36,11 @@ class Docker extends EventEmitter {
         this.args = args;
         this.cidfile = path.join(process.cwd(), `${ image.replace(/\W+/g, '_') }.cid`);
         this.command = command;
-        this.debug = Boolean(debug);
         this.healthCheck = healthCheck;
         this.image = image;
         this.logger = logger;
         this.process = null;
-        this.dockerEventsListener = new DockerEventsListener(debug, logger);
+        this.dockerEventsListener = new DockerEventsListener(logger);
 
         if (typeof healthCheck === 'string') {
             this.healthCheck = { url: healthCheck };
@@ -70,9 +67,9 @@ class Docker extends EventEmitter {
      * @return {Promise}
      */
     run() {
-        this.debug && this.logger.log(`Docker command: ${ this.dockerRunCommand }`);
+        this.logger.log(`Docker command: ${ this.dockerRunCommand }`);
         this.dockerEventsListener.connect({
-            filter: `image=${this.image}`
+            filter: `image=${ this.image }`
         });
 
         if (this.debug) {
@@ -90,7 +87,7 @@ class Docker extends EventEmitter {
                     });
             })
             .then(() => {
-                this.debug && this.logger.info(`Launching docker image '${ this.image }'`);
+                this.logger.info(`Launching docker image '${ this.image }'`);
                 return runProcess(this.dockerRunCommand);
             })
             .then(process => {
@@ -99,11 +96,11 @@ class Docker extends EventEmitter {
 
                 if (this.debug) {
                     this.process.stdout.on('data', (data) => {
-                        this.logger.log(data);
+                        this.logger.log(data.toString());
                     });
 
                     this.process.stderr.on('data', (data) => {
-                        this.logger.error(data);
+                        this.logger.error(data.toString());
                     });
 
                     this.dockerEventsListener.once('container.start', (event) => {
@@ -117,7 +114,7 @@ class Docker extends EventEmitter {
 
                 return this._reportWhenDockerIsRunning()
                     .then(() => {
-                        this.debug && this.logger.info('Docker container is ready');
+                        this.logger.info('Docker container is ready');
                         return process;
                     });
             })
@@ -141,7 +138,7 @@ class Docker extends EventEmitter {
                     this.process = null;
                 }
 
-                this.debug && this.logger.info('Docker container has stopped');
+                this.logger.info('Docker container has stopped');
                 this.dockerEventsListener.disconnect();
             });
     }
@@ -163,7 +160,7 @@ class Docker extends EventEmitter {
             return Promise.resolve();
         }
 
-        return Promise.delay(startDelay)
+        return Docker.delay(startDelay)
             .then(() => new Promise((resolve, reject) => {
                 let attempts = 0;
                 let pollstatus = null;
@@ -216,14 +213,25 @@ class Docker extends EventEmitter {
     _removeStaleContainer() {
         return fs.readFile(this.cidfile)
             .then((cid) => {
-                this.debug && this.logger.info('Shutting down running container');
+                this.logger.info('Shutting down running container');
                 return Docker.stopContainer(cid).then(() => Docker.removeContainer(cid));
             })
             .catch(() => Promise.resolve())
             .then(() => {
-                this.debug && this.logger.info('Cleaning up CID files');
+                this.logger.info('Cleaning up CID files');
                 return fs.remove(this.cidfile);
             });
+    }
+
+    /**
+     * @static
+     * @param {Number} timeMs
+     * @return {Promise}
+     */
+    static delay(timeMs) {
+        return new Promise(resolve => {
+            setTimeout(resolve, timeMs);
+        });
     }
 
     /**
@@ -244,6 +252,5 @@ class Docker extends EventEmitter {
         return runCommand(`docker rm ${ cid }`);
     }
 }
-
 
 export default Docker;

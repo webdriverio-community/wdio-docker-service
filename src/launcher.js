@@ -1,9 +1,10 @@
 import fs from 'fs-extra';
 import Docker from './utils/docker';
 import getFilePath from './utils/getFilePath';
-import Promise from 'bluebird';
+import logger from '@wdio/logger';
 
 const DEFAULT_LOG_FILENAME = 'docker-log.txt';
+const Logger = logger('wdio-docker-service');
 
 class DockerLauncher {
     constructor() {
@@ -16,9 +17,9 @@ class DockerLauncher {
         this.logToStdout = config.logToStdout;
         this.dockerLogs = config.dockerLogs;
 
+        Logger.setLevel(config.logLevel || 'info');
+
         const {
-            debug,
-            coloredLogs,
             dockerOptions: {
                 args,
                 command,
@@ -33,19 +34,18 @@ class DockerLauncher {
             return Promise.reject(new Error('dockerOptions.image is a required property'));
         }
 
-        const Logger = coloredLogs ? require('./utils/colorLogger') : console;
-
         this.docker = new Docker(image, {
             args,
             command,
-            debug,
             healthCheck,
             options,
         }, Logger);
 
         if (typeof this.dockerLogs === 'string') {
+            const logFile = getFilePath(this.dockerLogs, DEFAULT_LOG_FILENAME);
+
             this.docker.once('processCreated', () => {
-                this._redirectLogStream();
+                this._redirectLogStream(logFile);
             });
         }
 
@@ -56,7 +56,7 @@ class DockerLauncher {
                 }
             })
             .catch((err) => {
-                debug && Logger.error(`Failed to run container: ${ err.message }`);
+                Logger.error(`Failed to run container: ${ err.message }`);
             });
     }
 
@@ -66,16 +66,18 @@ class DockerLauncher {
         }
     }
 
-    _redirectLogStream() {
-        const logFile = getFilePath(this.dockerLogs, DEFAULT_LOG_FILENAME);
-
+    /**
+     * @param logFile
+     * @private
+     */
+    _redirectLogStream(logFile) {
         // ensure file & directory exists
-        fs.ensureFileSync(logFile);
+        return fs.ensureFile(logFile).then(() => {
+            const logStream = fs.createWriteStream(logFile, { flags: 'w' });
 
-        const logStream = fs.createWriteStream(logFile, { flags: 'w' });
-
-        this.docker.process.stdout.pipe(logStream);
-        this.docker.process.stderr.pipe(logStream);
+            this.docker.process.stdout.pipe(logStream);
+            this.docker.process.stderr.pipe(logStream);
+        });
     }
 }
 

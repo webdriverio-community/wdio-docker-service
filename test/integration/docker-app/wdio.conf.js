@@ -13,14 +13,10 @@ exports.config = {
             args: ['--headless', '--disable-gpu'],
         }
     }],
-
-    debug: true,
-    sync: true,
-    // logLevel: 'verbose',
-    coloredLogs: true,
-
+    
     baseUrl: 'http://localhost:8080',
-
+    logLevel: 'info',
+    
     waitforTimeout: 10000,
     connectionRetryTimeout: 90000,
     connectionRetryCount: 3,

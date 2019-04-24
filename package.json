@@ -1,6 +1,6 @@
 {
   "name": "wdio-docker-service",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "WebdriverIO service to start and stop docker container (for Selenium and more)",
   "repository": {
     "type": "git",
@@ -47,8 +47,7 @@
     "webdriverio": "^5.7.15"
   },
   "dependencies": {
-    "bluebird": "^3.5.2",
-    "chalk": "^2.4.1",
+    "@wdio/logger": "^5.7.8",
     "fs-extra": "^7.0.0",
     "node-fetch": "^2.2.0"
   },
