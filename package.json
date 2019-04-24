@@ -1,6 +1,6 @@
 {
   "name": "wdio-docker-service",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "description": "WebdriverIO service to start and stop docker container (for Selenium and more)",
   "repository": {
     "type": "git",
@@ -12,7 +12,6 @@
   "main": "index.js",
   "scripts": {
     "prepublishOnly": "rm -rf ./lib && npm run build",
-    "postinstall": "npm run build",
     "build": "babel ./src --out-dir ./lib -s",
     "test": "eslint -c .eslintrc.json src test && npm run test:unit && npm run test:integration",
     "test:unit": "nyc mocha --require @babel/register --recursive ./test/unit",
