@@ -8,7 +8,7 @@ describe('DockerLauncher', function() {
 
     beforeEach(function() {
         launcher = new DockerLauncher();
-        stub(Docker.prototype, 'run').returns(Promise.resolve());
+        stub(Docker.prototype, 'run').resolves();
     });
 
     afterEach(function() {
@@ -183,7 +183,7 @@ describe('DockerLauncher', function() {
 
                 beforeEach(function() {
                     Docker.prototype.run.restore();
-                    stub(Docker.prototype, 'run').returns(Promise.reject(new Error('Fail')));
+                    stub(Docker.prototype, 'run').rejects(new Error('Fail'));
                 });
 
                 it('must NOT call onDockerReady', function() {

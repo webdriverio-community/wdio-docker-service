@@ -99,7 +99,7 @@ describe('Docker', function() {
         };
 
         before(function() {
-            stub(Docker.prototype, '_removeStaleContainer').returns(Promise.resolve());
+            stub(Docker.prototype, '_removeStaleContainer').resolves();
             stub(DockerEventsListener.prototype, 'disconnect');
         });
 
@@ -131,9 +131,9 @@ describe('Docker', function() {
         };
 
         beforeEach(function() {
-            stub(ChildProcess, 'runProcess').returns(Promise.resolve(mockProcess));
-            stub(Docker.prototype, '_removeStaleContainer').returns(Promise.resolve());
-            stub(Docker.prototype, '_reportWhenDockerIsRunning').returns(Promise.resolve());
+            stub(ChildProcess, 'runProcess').resolves(mockProcess);
+            stub(Docker.prototype, '_removeStaleContainer').resolves();
+            stub(Docker.prototype, '_reportWhenDockerIsRunning').resolves();
             stub(DockerEventsListener.prototype, 'connect');
         });
 
@@ -146,8 +146,8 @@ describe('Docker', function() {
 
         context('when image is not yet pulled (first time)', function() {
             before(function() {
-                stub(Docker.prototype, '_isImagePresent').returns(Promise.reject());
-                stub(Docker.prototype, '_pullImage').returns(Promise.resolve());
+                stub(Docker.prototype, '_isImagePresent').rejects();
+                stub(Docker.prototype, '_pullImage').resolves();
             });
 
             after(function() {
@@ -166,7 +166,7 @@ describe('Docker', function() {
 
         context('when image is already pulled', function() {
             before(function() {
-                stub(Docker.prototype, '_isImagePresent').returns(Promise.resolve());
+                stub(Docker.prototype, '_isImagePresent').resolves();
                 spy(Docker.prototype, '_pullImage');
             });
 
@@ -199,7 +199,7 @@ describe('Docker', function() {
 
     describe('#stopContainer', function() {
         before(function() {
-            stub(ChildProcess, 'runCommand').returns(Promise.resolve());
+            stub(ChildProcess, 'runCommand').resolves();
         });
 
         after(function() {
@@ -215,7 +215,7 @@ describe('Docker', function() {
 
     describe('#removeContainer', function() {
         before(function() {
-            stub(ChildProcess, 'runCommand').returns(Promise.resolve());
+            stub(ChildProcess, 'runCommand').resolves();
         });
 
         after(function() {
@@ -231,9 +231,9 @@ describe('Docker', function() {
 
     describe('#_removeStaleContainer', function() {
         beforeEach(function() {
-            stub(fs, 'remove').returns(Promise.resolve());
-            stub(Docker, 'stopContainer').returns(Promise.resolve());
-            stub(Docker, 'removeContainer').returns(Promise.resolve());
+            stub(fs, 'remove').resolves();
+            stub(Docker, 'stopContainer').resolves();
+            stub(Docker, 'removeContainer').resolves();
         });
 
         afterEach(function() {
@@ -244,7 +244,7 @@ describe('Docker', function() {
 
         context('when cid file exists', function() {
             before(function() {
-                stub(fs, 'readFile').returns(Promise.resolve('123'));
+                stub(fs, 'readFile').resolves('123');
             });
 
             after(function() {
@@ -265,7 +265,7 @@ describe('Docker', function() {
 
         context('when cid file does not exist', function() {
             before(function() {
-                stub(fs, 'readFile').returns(Promise.reject());
+                stub(fs, 'readFile').rejects();
             });
 
             after(function() {
@@ -288,7 +288,7 @@ describe('Docker', function() {
 
     describe('#_pullImage', function() {
         before(function() {
-            stub(ChildProcess, 'runCommand').returns(Promise.resolve());
+            stub(ChildProcess, 'runCommand').resolves();
         });
 
         after(function() {
@@ -305,7 +305,7 @@ describe('Docker', function() {
 
     describe('#_isImagePresent', function() {
         before(function() {
-            stub(ChildProcess, 'runCommand').returns(Promise.resolve());
+            stub(ChildProcess, 'runCommand').resolves();
         });
 
         after(function() {
@@ -325,7 +325,7 @@ describe('Docker', function() {
             const pingDef = require('../../../src/utils/ping');
 
             before(function() {
-                stub(pingDef, 'default').returns(Promise.reject());
+                stub(pingDef, 'default').rejects();
             });
 
             after(function() {
@@ -345,7 +345,7 @@ describe('Docker', function() {
             const pingDef = require('../../../src/utils/ping');
 
             before(function() {
-                stub(pingDef, 'default').returns(Promise.resolve());
+                stub(pingDef, 'default').resolves();
                 spy(global, 'clearTimeout');
             });
 
@@ -368,7 +368,7 @@ describe('Docker', function() {
             const pingDef = require('../../../src/utils/ping');
 
             before(function() {
-                stub(pingDef, 'default').returns(Promise.reject());
+                stub(pingDef, 'default').rejects();
                 spy(global, 'clearTimeout');
             });
 
@@ -398,7 +398,7 @@ describe('Docker', function() {
             const pingDef = require('../../../src/utils/ping');
 
             before(function() {
-                stub(pingDef, 'default').returns(Promise.reject());
+                stub(pingDef, 'default').rejects();
                 spy(global, 'clearTimeout');
             });
 
