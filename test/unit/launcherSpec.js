@@ -2,34 +2,33 @@ import { expect } from 'chai';
 import { stub, spy } from 'sinon';
 import Docker from '../../src/utils/docker';
 
-describe('DockerLauncher', function () {
-    const ColorLogger = require('../../src/utils/colorLogger');
+describe('DockerLauncher', function() {
     const DockerLauncher = require('../../src/launcher');
     let launcher;
 
-    beforeEach(function () {
+    beforeEach(function() {
         launcher = new DockerLauncher();
         stub(Docker.prototype, 'run').returns(Promise.resolve());
     });
 
-    afterEach(function () {
+    afterEach(function() {
         Docker.prototype.run.restore();
     });
 
-    describe('#constructor', function () {
+    describe('#constructor', function() {
 
-        it('must initialize class properties', function () {
+        it('must initialize class properties', function() {
             expect(launcher.docker).to.eql(null);
             expect(launcher.dockerLogs).to.eql(null);
             expect(launcher.logToStdout).to.eql(false);
         });
     });
 
-    describe('#onPrepare', function () {
-        describe('@dockerOptions', function () {
-            context('when dockerOptions.image is not provided', function () {
+    describe('#onPrepare', function() {
+        describe('@dockerOptions', function() {
+            context('when dockerOptions.image is not provided', function() {
                 const dockerOptions = {};
-                it('must reject with error', function () {
+                it('must reject with error', function() {
                     return launcher.onPrepare({ dockerOptions })
                         .catch((err) => {
                             expect(err).to.be.instanceOf(Error);
@@ -38,8 +37,8 @@ describe('DockerLauncher', function () {
                 });
             });
 
-            context('when dockerOptions.image is provided', function () {
-                it('must run docker', function () {
+            context('when dockerOptions.image is provided', function() {
+                it('must run docker', function() {
                     const dockerOptions = {
                         image: 'my-image'
                     };
@@ -52,8 +51,8 @@ describe('DockerLauncher', function () {
                 });
             });
 
-            context('when dockerOptions.args is provided', function () {
-                it('must run docker with args', function () {
+            context('when dockerOptions.args is provided', function() {
+                it('must run docker with args', function() {
                     const dockerOptions = {
                         image: 'my-image',
                         args: '-foo'
@@ -66,8 +65,8 @@ describe('DockerLauncher', function () {
                 });
             });
 
-            context('when dockerOptions.command is provided', function () {
-                it('must run docker with command', function () {
+            context('when dockerOptions.command is provided', function() {
+                it('must run docker with command', function() {
                     const dockerOptions = {
                         image: 'my-image',
                         command: '/bin/bash'
@@ -80,8 +79,8 @@ describe('DockerLauncher', function () {
                 });
             });
 
-            context('when dockerOptions.healthCheck is provided', function () {
-                it('must run docker with healthCheck', function () {
+            context('when dockerOptions.healthCheck is provided', function() {
+                it('must run docker with healthCheck', function() {
                     const dockerOptions = {
                         image: 'my-image',
                         healthCheck: 'http://localhost:8000'
@@ -94,8 +93,8 @@ describe('DockerLauncher', function () {
                 });
             });
 
-            context('when dockerOptions.options are provided', function () {
-                it('must run docker with options', function () {
+            context('when dockerOptions.options are provided', function() {
+                it('must run docker with options', function() {
                     const dockerOptions = {
                         image: 'my-image',
                         options: {
@@ -115,17 +114,17 @@ describe('DockerLauncher', function () {
             });
         });
 
-        describe('@dockerLogs', function () {
-            beforeEach(function () {
+        describe('@dockerLogs', function() {
+            beforeEach(function() {
                 stub(DockerLauncher.prototype, '_redirectLogStream');
             });
 
-            afterEach(function () {
+            afterEach(function() {
                 DockerLauncher.prototype._redirectLogStream.restore();
             });
 
-            context('when not set', function () {
-                it('must not redirect log stream', function () {
+            context('when not set', function() {
+                it('must not redirect log stream', function() {
                     const config = {
                         dockerOptions: {
                             image: 'my-image'
@@ -139,8 +138,8 @@ describe('DockerLauncher', function () {
                 });
             });
 
-            context('when set to string', function () {
-                it('must redirect log stream', function () {
+            context('when set to string', function() {
+                it('must redirect log stream', function() {
                     const config = {
                         dockerLogs: './',
                         dockerOptions: {
@@ -157,8 +156,8 @@ describe('DockerLauncher', function () {
             });
         });
 
-        describe('@onDockerReady', function () {
-            context('when onDockerReady is provided', function () {
+        describe('@onDockerReady', function() {
+            context('when onDockerReady is provided', function() {
                 const config = {
                     onDockerReady: spy(),
                     dockerOptions: {
@@ -166,7 +165,7 @@ describe('DockerLauncher', function () {
                     }
                 };
 
-                it('must call onDockerReady', function () {
+                it('must call onDockerReady', function() {
                     return launcher.onPrepare(config)
                         .then(() => {
                             expect(config.onDockerReady.called).to.eql(true);
@@ -174,7 +173,7 @@ describe('DockerLauncher', function () {
                 });
             });
 
-            context('when docker run is rejected', function () {
+            context('when docker run is rejected', function() {
                 const config = {
                     onDockerReady: spy(),
                     dockerOptions: {
@@ -182,12 +181,12 @@ describe('DockerLauncher', function () {
                     }
                 };
 
-                beforeEach(function () {
+                beforeEach(function() {
                     Docker.prototype.run.restore();
                     stub(Docker.prototype, 'run').returns(Promise.reject(new Error('Fail')));
                 });
 
-                it('must NOT call onDockerReady', function () {
+                it('must NOT call onDockerReady', function() {
                     return launcher.onPrepare(config)
                         .catch(() => {
                             expect(config.onDockerReady.called).to.eql(false);
@@ -195,79 +194,11 @@ describe('DockerLauncher', function () {
                 });
             });
         });
-
-        describe('@coloredLogs', function () {
-            context('when set to true', function () {
-                const config = {
-                    coloredLogs: true,
-                    dockerOptions: {
-                        image: 'my-image'
-                    }
-                };
-
-                it('must set docker logger to color-logger', function () {
-                    return launcher.onPrepare(config)
-                        .then(() => {
-                            expect(launcher.docker.logger).to.be.deep.eql(ColorLogger);
-                        });
-                });
-            });
-
-            context('when set to false', function () {
-                const config = {
-                    coloredLogs: false,
-                    dockerOptions: {
-                        image: 'my-image'
-                    }
-                };
-
-                it('must set docker logger to console', function () {
-                    return launcher.onPrepare(config)
-                        .then(() => {
-                            expect(launcher.docker.logger).to.be.eql(console);
-                        });
-                });
-            });
-        });
-
-        describe('@debug', function () {
-            context('when set to true', function () {
-                const config = {
-                    debug: true,
-                    dockerOptions: {
-                        image: 'my-image'
-                    }
-                };
-
-                it('must set docker debug to true', function () {
-                    return launcher.onPrepare(config)
-                        .then(() => {
-                            expect(launcher.docker.debug).to.eql(true);
-                        });
-                });
-            });
-
-            context('when set to false', function () {
-                const config = {
-                    debug: false,
-                    dockerOptions: {
-                        image: 'my-image'
-                    }
-                };
-
-                it('must set docker debug to false', function () {
-                    return launcher.onPrepare(config)
-                        .then(() => {
-                            expect(launcher.docker.debug).to.eql(false);
-                        });
-                });
-            });
-        });
     });
 
-    describe('#onComplete', function () {
-        context('when this.docker is present', function () {
-            it('must call this.docker.stop', function () {
+    describe('#onComplete', function() {
+        context('when this.docker is present', function() {
+            it('must call this.docker.stop', function() {
                 launcher.docker = {
                     stop: spy()
                 };

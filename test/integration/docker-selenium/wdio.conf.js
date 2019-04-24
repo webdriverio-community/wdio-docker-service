@@ -10,12 +10,8 @@ exports.config = {
         browserName: 'chrome'
     }],
 
-    debug: true,
-    sync: true,
-    // logLevel: 'verbose',
-    coloredLogs: true,
-
     baseUrl: 'http://webdriver.io',
+    logLevel: 'info',
 
     waitforTimeout: 10000,
     connectionRetryTimeout: 90000,

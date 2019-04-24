@@ -11,13 +11,11 @@ const DOCKER_EVENTS_MODULE = path.resolve(__dirname, '..', 'modules/dockerEvents
 class DockerEventsListener extends EventEmitter {
     /**
      * @constructor
-     * @param {Boolean} [debug]
      * @param {ColorLogger} [logger]
      */
-    constructor(debug = false, logger = console) {
+    constructor(logger = console) {
         super();
 
-        this.debug = debug;
         this.logger = logger;
         this._subprocess = null;
         this._onMessage = this._onMessage.bind(this);
@@ -35,14 +33,14 @@ class DockerEventsListener extends EventEmitter {
         sps.on('error', this._onError);
         sps.send(opt);
 
-        this.debug && this.logger.warn('Connecting dockerEventsListener:', sps.pid);
+        this.logger.warn('Connecting dockerEventsListener:', sps.pid);
 
         this._subprocess = sps;
     }
 
     disconnect() {
         if (this._subprocess && this._subprocess.connected) {
-            this.debug && this.logger.warn('Disconnecting dockerEventsListener:', this._subprocess.pid);
+            this.logger.warn('Disconnecting dockerEventsListener:', this._subprocess.pid);
             this._subprocess.disconnect();
         }
         this._subprocess = null;
