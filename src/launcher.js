@@ -27,7 +27,8 @@ class DockerLauncher {
                 image,
                 options,
             },
-            onDockerReady
+            onDockerReady,
+            logLevel
         } = config;
 
         if (!image) {
@@ -39,6 +40,7 @@ class DockerLauncher {
             command,
             healthCheck,
             options,
+            debug: logLevel && logLevel === 'debug'
         }, Logger);
 
         if (typeof this.dockerLogs === 'string') {

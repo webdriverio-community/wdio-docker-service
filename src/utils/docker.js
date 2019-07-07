@@ -25,8 +25,9 @@ class Docker extends EventEmitter {
      * @param {String} [command] docker command that follows image/tag name
      * @param {String} [args] docker args that follow image/tag name
      * @param {Object} logger Color logger or console
+     * @param {Boolean} [debug]
      */
-    constructor(image, { options = {}, healthCheck = {}, command, args } = {}, logger = console) {
+    constructor(image, { options = {}, healthCheck = {}, command, args, debug = false } = {}, logger = console) {
         super();
 
         if (!image) {
@@ -36,6 +37,7 @@ class Docker extends EventEmitter {
         this.args = args;
         this.cidfile = path.join(process.cwd(), `${ image.replace(/\W+/g, '_') }.cid`);
         this.command = command;
+        this.debug = debug;
         this.healthCheck = healthCheck;
         this.image = image;
         this.logger = logger;

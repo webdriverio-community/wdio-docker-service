@@ -28,6 +28,7 @@ describe('Docker', function() {
                     expect(docker.args).to.eql(undefined);
                     expect(docker.cidfile).to.eql(cidfile);
                     expect(docker.command).to.eql(undefined);
+                    expect(docker.debug).to.eql(false);
                     expect(docker.healthCheck).to.eql({});
                     expect(docker.logger).to.eql(console);
                     expect(docker.process).to.eql(null);

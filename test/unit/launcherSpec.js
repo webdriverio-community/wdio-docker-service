@@ -112,6 +112,19 @@ describe('DockerLauncher', function() {
                         });
                 });
             });
+
+            context('when logLevel is set to debug', function() {
+                it('must set debug property of Docker to true', function() {
+                    const dockerOptions = {
+                        image: 'my-image',
+                    };
+
+                    return launcher.onPrepare({ dockerOptions, logLevel: 'debug' })
+                        .then(() => {
+                            expect(launcher.docker.debug).to.be.true;
+                        });
+                });
+            });
         });
 
         describe('@dockerLogs', function() {
