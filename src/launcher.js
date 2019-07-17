@@ -16,6 +16,7 @@ class DockerLauncher {
     onPrepare(config) {
         this.logToStdout = config.logToStdout;
         this.dockerLogs = config.dockerLogs;
+        this.watchMode = !!config.watch;
 
         Logger.setLevel(config.logLevel || 'info');
 
@@ -63,7 +64,7 @@ class DockerLauncher {
     }
 
     onComplete() {
-        if (this.docker) {
+        if (!this.watchMode && this.docker) {
             return this.docker.stop();
         }
     }
@@ -80,6 +81,12 @@ class DockerLauncher {
             this.docker.process.stdout.pipe(logStream);
             this.docker.process.stderr.pipe(logStream);
         });
+    }
+
+    _stopProcess() {
+        if (this.docker) {
+            this.docker.stop();
+        }
     }
 }
 
