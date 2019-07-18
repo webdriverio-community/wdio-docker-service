@@ -16,6 +16,7 @@ class DockerLauncher {
     onPrepare(config) {
         this.logToStdout = config.logToStdout;
         this.dockerLogs = config.dockerLogs;
+        this.watchMode = !!config.watch;
 
         Logger.setLevel(config.logLevel || 'info');
 
@@ -63,8 +64,15 @@ class DockerLauncher {
     }
 
     onComplete() {
-        if (this.docker) {
+        // do not stop docker if in watch mode
+        if (!this.watchMode && this.docker) {
             return this.docker.stop();
+        }
+    }
+
+    afterSession() {
+        if (this.docker) {
+            this.docker.stop();
         }
     }
 

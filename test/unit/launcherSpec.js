@@ -220,5 +220,30 @@ describe('DockerLauncher', function() {
                 expect(launcher.docker.stop.called).to.eql(true);
             });
         });
+
+        context('when this.watchMode is present', function() {
+            it('must not call this.docker.stop', function() {
+                launcher.watchMode = true;
+                launcher.docker = {
+                    stop: spy()
+                };
+
+                launcher.onComplete();
+                expect(launcher.docker.stop.called).to.eql(false);
+            });
+        });
+    });
+
+    describe('#afterSession', function() {
+        context('when this.docker is present', function() {
+            it('must call this.docker.stop', function() {
+                launcher.docker = {
+                    stop: spy()
+                };
+
+                launcher.afterSession();
+                expect(launcher.docker.stop.called).to.eql(true);
+            });
+        });
     });
 });
