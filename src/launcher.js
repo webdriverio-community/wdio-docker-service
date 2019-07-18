@@ -64,8 +64,15 @@ class DockerLauncher {
     }
 
     onComplete() {
+        // do not stop docker if in watch mode
         if (!this.watchMode && this.docker) {
             return this.docker.stop();
+        }
+    }
+
+    afterSession() {
+        if (this.docker) {
+            this.docker.stop();
         }
     }
 
@@ -81,12 +88,6 @@ class DockerLauncher {
             this.docker.process.stdout.pipe(logStream);
             this.docker.process.stderr.pipe(logStream);
         });
-    }
-
-    _stopProcess() {
-        if (this.docker) {
-            this.docker.stop();
-        }
     }
 }
 
