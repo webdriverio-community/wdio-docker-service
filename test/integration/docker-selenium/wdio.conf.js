@@ -11,7 +11,7 @@ exports.config = {
     }],
 
     baseUrl: 'http://webdriver.io',
-    logLevel: 'info',
+    logLevel: 'debug',
 
     waitforTimeout: 10000,
     connectionRetryTimeout: 90000,
