@@ -22,7 +22,7 @@ describe('DockerEvents module', function () {
     });
 
     describe('#init', function () {
-        const cmd = process.platform === 'win32' ? 'docker events --format="{{json .}}"' : 'docker events --format={{json\\ .}}';
+        const cmd = process.platform === 'win32' ? 'docker events --format "{{json .}}"' : 'docker events --format {{json\\ .}}';
 
         context('when calling w/o options', function () {
             beforeEach(function () {
@@ -37,7 +37,7 @@ describe('DockerEvents module', function () {
         context('when calling with options', function () {
             it('must start sub-process with optional flags', function () {
                 DockerEvents.init({ foo: 'bar' });
-                expect(ChildProcess.exec.calledWith(`${ cmd } --foo=bar`)).to.be.true;
+                expect(ChildProcess.exec.calledWith(`${ cmd } --foo bar`)).to.be.true;
             });
         });
 
