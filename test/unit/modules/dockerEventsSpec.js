@@ -28,14 +28,14 @@ describe('DockerEvents module', function () {
             });
 
             it('must start sub-process with default command', function () {
-                expect(ChildProcess.exec.calledWith('docker events --format {{json\\ .}}')).to.be.true;
+                expect(ChildProcess.exec.calledWith('docker events --format={{json\\ .}}')).to.be.true;
             });
         });
 
         context('when calling with options', function () {
             it('must start sub-process with optional flags', function () {
                 DockerEvents.init({ foo: 'bar' });
-                expect(ChildProcess.exec.calledWith('docker events --format {{json\\ .}} --foo bar')).to.be.true;
+                expect(ChildProcess.exec.calledWith('docker events --format={{json\\ .}} --foo=bar')).to.be.true;
             });
         });
 
@@ -127,6 +127,7 @@ describe('DockerEvents module', function () {
         it('must extract data from JSON and send data to parent', function () {
             DockerEvents._parseEventData(MockRawDockerEvent);
             expect(global.process.send.calledWith({
+                args: '',
                 image: MockRawDockerEvent.from,
                 timeStamp: new Date(MockRawDockerEvent.timeNano / 1000000),
                 type: `${ MockRawDockerEvent.Type }.${ MockRawDockerEvent.Action }`,

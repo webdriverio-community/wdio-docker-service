@@ -25,7 +25,7 @@ describe('Child Process utils', function () {
             });
 
             it('must reject with error', function () {
-                return runProcess('foo', ['bar'])
+                return runProcess(['foo', 'bar'])
                     .catch((err) => {
                         expect(err).to.be.instanceOf(Error);
                     });
@@ -45,7 +45,7 @@ describe('Child Process utils', function () {
             });
 
             it('must resolve promise with child process', function () {
-                return runProcess('foo', ['bar'])
+                return runProcess(['foo', 'bar'])
                     .then((childProcess) => {
                         expect(childProcess).to.be.instanceOf(MockChildProcess);
                     });

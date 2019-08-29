@@ -1,6 +1,8 @@
 import camelToDash from './camelToDash';
 
 const RX_SPACES = /(\s)/g;
+const RX_IS_ESCAPED = /^(["'])([^"']+)(["'])$/;
+
 /**
  * @param {Object} opt Options to serialize
  * @return {Array}
@@ -30,16 +32,16 @@ export function serializeOption(key, value) {
     const prefix = key.length > 1 ? '--' : '-';
 
     if (typeof value === 'boolean' && value) {
-        return [`${prefix}${key}`];
+        return [`${ prefix }${ key }`];
     }
 
     if (typeof value === 'string') {
-        return [`${prefix}${key} ${value}`];
+        return [`${prefix}${key}=${value}`];
     }
 
     if (Array.isArray(value)) {
         return value.reduce((acc, item) => {
-            acc.push(`${prefix}${key} ${item}`);
+            acc.push(`${prefix}${key}=${item}`);
             return acc;
         }, []);
     }
@@ -50,9 +52,10 @@ export function serializeOption(key, value) {
  * @return {void | string | *}
  */
 export function sanitizeValue(value) {
-    if (typeof value !== 'string') {
+    if (typeof value !== 'string' || RX_IS_ESCAPED.test(value)) {
         return value;
     }
+
     return process.platform === 'win32' ? value : value.replace(RX_SPACES, '\\ ');
 }
 

@@ -14,14 +14,14 @@ describe('Options Serializer', function () {
             context('and is a string', function () {
                 it('must serialize correctly', function () {
                     const option = serializeOption('d', 'boo');
-                    expect(option).to.eql(['-d boo']);
+                    expect(option).to.eql(['-d=boo']);
                 });
             });
 
             context('and is an array', function () {
                 it('must serialize correctly', function () {
                     const option = serializeOption('d', ['foo=bar', 'bar=foo']);
-                    expect(option).to.eql(['-d foo=bar', '-d bar=foo']);
+                    expect(option).to.eql(['-d=foo=bar', '-d=bar=foo']);
                 });
             });
         });
@@ -37,14 +37,14 @@ describe('Options Serializer', function () {
             context('and is a string', function () {
                 it('must serialize correctly', function () {
                     const option = serializeOption('foo', 'boo');
-                    expect(option).to.eql(['--foo boo']);
+                    expect(option).to.eql(['--foo=boo']);
                 });
             });
 
             context('and is an array', function () {
                 it('must serialize correctly', function () {
                     const option = serializeOption('doo', ['foo=bar', 'bar=foo']);
-                    expect(option).to.eql(['--doo foo=bar', '--doo bar=foo']);
+                    expect(option).to.eql(['--doo=foo=bar', '--doo=bar=foo']);
                 });
             });
         });
@@ -62,9 +62,9 @@ describe('Options Serializer', function () {
             expect(serializeOptions(options)).to.deep.eql([
                 '-d',
                 '--foo',
-                '--boo bop',
-                '-e 123=345',
-                '-e 678=901'
+                '--boo=bop',
+                '-e=123=345',
+                '-e=678=901'
             ]);
         });
     });
