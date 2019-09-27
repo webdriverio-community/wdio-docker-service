@@ -4,7 +4,7 @@ import deepMerge from '../utils/deepMerge';
 
 const NANOSECONDS = 1000000;
 const DEFAULT_OPTIONS = {
-    format: '{{json .}}'
+    format: '"{{json .}}"'
 };
 
 const CMD = 'docker events';
