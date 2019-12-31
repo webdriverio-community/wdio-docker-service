@@ -4,7 +4,7 @@ import deepMerge from '../utils/deepMerge';
 
 const NANOSECONDS = 1000000;
 const DEFAULT_OPTIONS = {
-    format: '{{json .}}'
+    format: process.platform === 'win32' ? '"{{json .}}"' : '{{json .}}'
 };
 
 const CMD = 'docker events';
@@ -72,14 +72,17 @@ const DockerEvents = {
             from = null,
             id = null,
             scope = null,
-            status,
+            status = '',
             timeNano,
             Type,
         } = jsonData;
 
-        const eventType = `${Type}.${Action}`;
+        const [action] = Action.split(':');
+        const eventType = `${ Type }.${ action }`;
+        const args = status.indexOf(':') !== -1 ? status.slice(status.indexOf(':') + 1).trim() : '';
 
         process.send({
+            args,
             image: from,
             timeStamp: new Date(timeNano / NANOSECONDS),
             type: eventType,
@@ -100,12 +103,12 @@ const DockerEvents = {
     _tryParse(text) {
         try {
             return JSON.parse(text);
-        } catch (e) {
+        }
+        catch (e) {
             return null;
         }
     }
 };
-
 
 process.on('message', (options) => {
     DockerEvents.init(options);

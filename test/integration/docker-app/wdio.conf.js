@@ -13,10 +13,10 @@ exports.config = {
             args: ['--headless', '--disable-gpu'],
         }
     }],
-    
+
     baseUrl: 'http://localhost:8080',
-    logLevel: 'info',
-    
+    logLevel: 'debug',
+
     waitforTimeout: 10000,
     connectionRetryTimeout: 90000,
     connectionRetryCount: 3,
@@ -39,7 +39,11 @@ exports.config = {
             v: [
                 `${ path.join(__dirname, '/app/') }:/usr/share/nginx/html:ro`,
                 `${ path.join(__dirname, '/nginx.conf') }:/etc/nginx/nginx.conf:ro`
-            ]
+            ],
+            healthCmd: '"curl -sS http://127.0.0.1:8080 || exit 1"',
+            healthTimeout: '10s',
+            healthRetries: 3,
+            healthInterval: '5s'
         }
     }
 };

@@ -1,16 +1,13 @@
 import { spawn } from 'child_process';
 
-const SPACE = ' ';
-
 /**
  * Runs continuous shell process
- * @param {String} cmd Shell command
+ * @param {String[]} cmd Shell command
  * @return {Promise<process>}
  */
 export function runProcess(cmd) {
     return new Promise((resolve, reject) => {
-        const commands = cmd.split(SPACE);
-        const [app, ...args] = commands;
+        const [app, ...args] = cmd;
         const childProcess = spawn(app, args);
 
         childProcess.on('error', (err) => {
@@ -25,13 +22,12 @@ export function runProcess(cmd) {
 
 /**
  * Runs shell command
- * @param {String} cmd Shell command
+ * @param {String[]} cmd Shell command
  * @return {Promise<process>}
  */
 export function runCommand(cmd) {
     return new Promise((resolve, reject) => {
-        const commands = cmd.split(SPACE);
-        const [app, ...args] = commands;
+        const [app, ...args] = cmd;
         const childProcess = spawn(app, args, { stdio: 'ignore' });
 
         childProcess.on('error', (err) => {

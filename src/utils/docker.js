@@ -22,9 +22,9 @@ class Docker extends EventEmitter {
      * @param {String} image Docker image/tag name
      * @param {Object} [options] Docker run options
      * @param {String|Object} [healthCheck] Url that verifies that service is running
-     * @param {String} [command] docker command that follows image/tag name
+     * @param {String[]} [command] docker command that follows image/tag name
      * @param {String} [args] docker args that follow image/tag name
-     * @param {Object} logger Color logger or console
+     * @param {Object} logger Logger or console
      * @param {Boolean} [debug]
      */
     constructor(image, { options = {}, healthCheck = {}, command, args, debug = false } = {}, logger = console) {
@@ -52,7 +52,7 @@ class Docker extends EventEmitter {
             cidfile: this.cidfile
         }, DEFAULT_OPTIONS, options);
 
-        const cmdChain = ['docker run'].concat(serializeOptions(this.options), [this.image]);
+        const cmdChain = ['docker', 'run'].concat(serializeOptions(this.options), [this.image]);
 
         if (this.command) {
             cmdChain.push(this.command);
@@ -62,14 +62,14 @@ class Docker extends EventEmitter {
             cmdChain.push(this.args);
         }
 
-        this.dockerRunCommand = cmdChain.join(SPACE);
+        this.dockerRunCommand = cmdChain;
     }
 
     /**
      * @return {Promise}
      */
     run() {
-        this.logger.log(`Docker command: ${ this.dockerRunCommand }`);
+        this.logger.log(`Docker command: ${ this.dockerRunCommand.join(SPACE) }`);
         this.dockerEventsListener.connect({
             filter: `image=${ this.image }`
         });
@@ -162,7 +162,15 @@ class Docker extends EventEmitter {
             return Promise.resolve();
         }
 
-        return Docker.delay(startDelay)
+        const waitForDockerHealthCheck = new Promise((resolve) => {
+            this.dockerEventsListener.on('container.health_status', (event) => {
+                if (event.args === 'healthy') {
+                    resolve();
+                }
+            });
+        });
+
+        const waitForHealthCheckPoll = Docker.delay(startDelay)
             .then(() => new Promise((resolve, reject) => {
                 let attempts = 0;
                 let pollstatus = null;
@@ -189,6 +197,8 @@ class Docker extends EventEmitter {
 
                 pollstatus = setTimeout(poll, inspectInterval);
             }));
+
+        return Promise.race([waitForDockerHealthCheck, waitForHealthCheckPoll]);
     }
 
     /**
@@ -196,7 +206,7 @@ class Docker extends EventEmitter {
      * @private
      */
     _isImagePresent() {
-        return runCommand(`docker inspect ${ this.image }`);
+        return runCommand(['docker', 'inspect', this.image]);
     }
 
     /**
@@ -204,7 +214,7 @@ class Docker extends EventEmitter {
      * @private
      */
     _pullImage() {
-        return runCommand(`docker pull ${ this.image }`);
+        return runCommand(['docker', 'pull', this.image]);
     }
 
     /**
@@ -242,7 +252,7 @@ class Docker extends EventEmitter {
      * @return {Promise}
      */
     static stopContainer(cid) {
-        return runCommand(`docker stop ${ cid }`);
+        return runCommand(['docker', 'stop', cid]);
     }
 
     /**
@@ -251,7 +261,7 @@ class Docker extends EventEmitter {
      * @return {Promise}
      */
     static removeContainer(cid) {
-        return runCommand(`docker rm ${ cid }`);
+        return runCommand(['docker', 'rm', cid]);
     }
 }
 

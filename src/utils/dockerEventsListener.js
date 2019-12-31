@@ -11,7 +11,7 @@ const DOCKER_EVENTS_MODULE = path.resolve(__dirname, '..', 'modules/dockerEvents
 class DockerEventsListener extends EventEmitter {
     /**
      * @constructor
-     * @param {ColorLogger} [logger]
+     * @param {Logger} [logger]
      */
     constructor(logger = console) {
         super();
