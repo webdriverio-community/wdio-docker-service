@@ -88,7 +88,8 @@ describe('Docker', function() {
 
                 it('must escape cidfile path', function() {
                     const docker = new Docker('my-image', { command: 'test', args: '-foo' });
-                    expect(docker.dockerRunCommand.join(SPACE)).to.eql('docker run --cidfile=/User/johndoe/test\\ dir/my_image.cid --rm my-image test -foo');
+                    const cmd = process.platform === 'win32' ? 'docker run --cidfile=\\User\\johndoe\\test dir\\my_image.cid --rm my-image test -foo' : 'docker run --cidfile=/User/johndoe/test\\ dir/my_image.cid --rm my-image test -foo';
+                    expect(docker.dockerRunCommand.join(SPACE)).to.eql(cmd);
                 });
             });
         });
