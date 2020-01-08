@@ -36,14 +36,11 @@ export function serializeOption(key, value) {
     }
 
     if (typeof value === 'string') {
-        return [`${prefix}${key}=${value}`];
+        return [`${ prefix }${ key }`, `${ value }`];
     }
 
     if (Array.isArray(value)) {
-        return value.reduce((acc, item) => {
-            acc.push(`${prefix}${key}=${item}`);
-            return acc;
-        }, []);
+        return value.reduce((acc, item) => acc.concat([`${ prefix }${ key }`, `${ item }`]), []);
     }
 }
 

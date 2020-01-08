@@ -50,7 +50,7 @@ describe('Docker', function() {
                         }
                     });
 
-                    expect(docker.dockerRunCommand.join(SPACE)).to.eql(`docker run --cidfile=${ docker.cidfile } --rm -d -p=1234:1234 --foo=bar my-image`);
+                    expect(docker.dockerRunCommand.join(SPACE)).to.eql(`docker run --cidfile ${ docker.cidfile } --rm -d -p 1234:1234 --foo bar my-image`);
                 });
             });
 
@@ -58,7 +58,7 @@ describe('Docker', function() {
                 it('must place it after image name ', function() {
                     const docker = new Docker('my-image', { command: 'test' });
 
-                    expect(docker.dockerRunCommand.join(SPACE)).to.eql(`docker run --cidfile=${ docker.cidfile } --rm my-image test`);
+                    expect(docker.dockerRunCommand.join(SPACE)).to.eql(`docker run --cidfile ${ docker.cidfile } --rm my-image test`);
                 });
             });
 
@@ -66,14 +66,14 @@ describe('Docker', function() {
                 it('must place it after image name ', function() {
                     const docker = new Docker('my-image', { args: '-foo' });
 
-                    expect(docker.dockerRunCommand.join(SPACE)).to.eql(`docker run --cidfile=${ docker.cidfile } --rm my-image -foo`);
+                    expect(docker.dockerRunCommand.join(SPACE)).to.eql(`docker run --cidfile ${ docker.cidfile } --rm my-image -foo`);
                 });
             });
 
             context('when both command and args arguments are provided', function() {
                 it('must place both of them after image name where command is followed by args', function() {
                     const docker = new Docker('my-image', { command: 'test', args: '-foo' });
-                    expect(docker.dockerRunCommand.join(SPACE)).to.eql(`docker run --cidfile=${ docker.cidfile } --rm my-image test -foo`);
+                    expect(docker.dockerRunCommand.join(SPACE)).to.eql(`docker run --cidfile ${ docker.cidfile } --rm my-image test -foo`);
                 });
             });
 
@@ -88,7 +88,7 @@ describe('Docker', function() {
 
                 it('must escape cidfile path', function() {
                     const docker = new Docker('my-image', { command: 'test', args: '-foo' });
-                    const cmd = process.platform === 'win32' ? 'docker run --cidfile=\\User\\johndoe\\test dir\\my_image.cid --rm my-image test -foo' : 'docker run --cidfile=/User/johndoe/test\\ dir/my_image.cid --rm my-image test -foo';
+                    const cmd = process.platform === 'win32' ? 'docker run --cidfile \\User\\johndoe\\test dir\\my_image.cid --rm my-image test -foo' : 'docker run --cidfile /User/johndoe/test\\ dir/my_image.cid --rm my-image test -foo';
                     expect(docker.dockerRunCommand.join(SPACE)).to.eql(cmd);
                 });
             });
