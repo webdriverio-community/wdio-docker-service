@@ -1,4 +1,6 @@
 env:
+  - GIT_COMMIT_SHA=$TRAVIS_PULL_REQUEST_SHA
+  - GIT_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH
   global:
     - CC_TEST_REPORTER_ID=17f8fadda4b2b6209c8e9f36441887cac12f0cfcb1a7896b805966a7b0b954e0
 
@@ -30,9 +32,5 @@ before_script:
 script:
   - npm test
 
-# Create coverage report and upload it to coveralls.io
-after_success: npm run coverage
-
 after_script:
-  - ./cc-test-reporter format-coverage -t lcov
-  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+  - ./cc-test-reporter after-build -t lcov --exit-code $TRAVIS_TEST_RESULT

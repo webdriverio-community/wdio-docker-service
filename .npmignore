@@ -4,7 +4,6 @@
 /coverage/
 CONTRIBUTING.md
 PULL_REQUEST_TEMPLATE.md
-.coveralls.yml
 .editorconfig
 .travis.yml
 docker-log.txt
