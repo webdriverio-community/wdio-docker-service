@@ -1,6 +1,7 @@
 /src/
 /test/
 /.*/
+/coverage/
 CONTRIBUTING.md
 PULL_REQUEST_TEMPLATE.md
 .coveralls.yml
@@ -9,3 +10,4 @@ PULL_REQUEST_TEMPLATE.md
 docker-log.txt
 babel.config.js
 .eslintrc.json
+.nycrc
