@@ -22,6 +22,9 @@ cache:
     - node_modules
 
 before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
   - npm ci
 
 script:
@@ -29,3 +32,7 @@ script:
 
 # Create coverage report and upload it to coveralls.io
 after_success: npm run coverage
+
+after_script:
+  - ./cc-test-reporter format-coverage -t lcov
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
