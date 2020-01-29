@@ -16,8 +16,7 @@
     "build:dev": "babel ./src --out-dir ./lib -s",
     "test": "eslint -c .eslintrc.json src test && npm run test:unit && npm run test:integration",
     "test:unit": "nyc mocha --require @babel/register --recursive ./test/unit",
-    "test:integration": "npm run build:dev && wdio test/integration/docker-selenium/wdio.conf.js && wdio test/integration/docker-app/wdio.conf.js",
-    "coverage": "nyc report --reporter=text-lcov | coveralls"
+    "test:integration": "npm run build:dev && wdio test/integration/docker-selenium/wdio.conf.js && wdio test/integration/docker-app/wdio.conf.js"
   },
   "keywords": [
     "webdriverio",
