@@ -1,6 +1,6 @@
 WDIO Docker Service [![Maintainability](https://api.codeclimate.com/v1/badges/fa04188e6558671dbd9e/maintainability)](https://codeclimate.com/github/stsvilik/wdio-docker-service/maintainability) 
 [![Build Status](https://travis-ci.org/stsvilik/wdio-docker-service.svg?branch=master)](https://travis-ci.org/stsvilik/wdio-docker-service)
-[![Coverage Status](https://coveralls.io/repos/github/stsvilik/wdio-selenium-standalone-service/badge.svg?branch=master)](https://coveralls.io/github/stsvilik/wdio-selenium-standalone-service?branch=master)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/fa04188e6558671dbd9e/test_coverage)](https://codeclimate.com/github/stsvilik/wdio-docker-service/test_coverage)
 ===
 
 This service is intended for use with [WebdriverIO](http://webdriver.io/) and it helps run functional/integration tests 
