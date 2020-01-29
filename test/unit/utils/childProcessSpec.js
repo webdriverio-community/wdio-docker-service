@@ -97,10 +97,10 @@ describe('Child Process utils', function () {
             });
 
             it('must reject with error', function () {
-                return runCommand('foo', ['bar'])
+                return runCommand(['foo', 'bar'])
                     .catch((err) => {
                         expect(err).to.be.instanceOf(Error);
-                        expect(err.message).to.eql('Command \'foo\' exited with code 123');
+                        expect(err.message).to.eql('Command \'foo bar\' exited with code 123');
                     });
             });
         });
