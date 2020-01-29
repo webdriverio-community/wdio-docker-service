@@ -40,7 +40,7 @@ export function runCommand(cmd) {
                 return;
             }
 
-            reject(new Error(`Command '${ cmd }' exited with code ${ code }`));
+            reject(new Error(`Command '${ cmd.join(' ') }' exited with code ${ code }`));
         });
     });
 }
