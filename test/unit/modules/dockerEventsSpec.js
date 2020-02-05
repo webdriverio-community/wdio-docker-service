@@ -22,7 +22,7 @@ describe('DockerEvents module', function () {
     });
 
     describe('#init', function () {
-        const cmd = process.platform === 'win32' ? 'docker events --format "{{json .}}"' : 'docker events --format {{json\\ .}}';
+        const cmd = 'docker events --format "{{json .}}"';
 
         context('when calling w/o options', function () {
             beforeEach(function () {
