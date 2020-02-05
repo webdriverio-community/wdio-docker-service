@@ -10,3 +10,4 @@ docker-log.txt
 babel.config.js
 .eslintrc.json
 .nycrc
+.codeclimate.yml
