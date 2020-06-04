@@ -6,7 +6,7 @@ describe('when using Docker to run Selenium', function() {
     it('should run a test', async function() {
         await browser.url('/');
         const title = await browser.getTitle();
-        expect(title).to.eql('WebdriverIO · Next-gen WebDriver test framework for Node.js');
+        expect(title).to.eql('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js');
     });
 
     it('should have created a log file', function() {

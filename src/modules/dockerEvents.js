@@ -1,6 +1,7 @@
 import { exec } from 'child_process';
 import serializeOptions from '../utils/optionsSerializer';
 import deepMerge from '../utils/deepMerge';
+import readStream from '../utils/readStream';
 
 const NANOSECONDS = 1000000;
 const DEFAULT_OPTIONS = {
@@ -13,25 +14,34 @@ const DockerEvents = {
     /**
      * @param {Object} [options]
      */
-    init(options = {}) {
+    async init(options = {}) {
         const cmdOptions = deepMerge({}, DEFAULT_OPTIONS, options);
         const cmd = [CMD].concat(serializeOptions(cmdOptions)).join(' ');
         const buffer = [];
-
         const ps = exec(cmd);
+
+        /**
+         * Capture stdout
+         */
         ps.stdout.setEncoding('utf-8');
         ps.stdout.on('data', (data) => {
             buffer.push(data);
             const jsonString = buffer.join('');
             const json = this._tryParse(jsonString);
+
             if (json) {
                 buffer.length = 0;
                 this._parseEventData(json);
             }
         });
 
+        /**
+         * Capture stderr
+         */
+        const errorMessage = await readStream(ps.stderr);
+
         //Handle sub-process exit
-        ps.on('exit', (code) => this._onExit(code, cmd));
+        ps.on('exit', (code) => this._onExit(code, cmd, errorMessage));
 
         //Handle forked process disconnect
         process.on('disconnect', () => this._onDisconnect());
@@ -47,13 +57,14 @@ const DockerEvents = {
     /**
      * @param {Number} code
      * @param {String} cmd
+     * @param {String} errorMsg
      * @private
      */
-    _onExit(code, cmd) {
+    _onExit(code, cmd, errorMsg) {
         if (code !== 0 && process.connected) {
             process.send({
                 type: 'error',
-                message: `Error executing sub-child: ${ cmd }`
+                message: `Error executing sub-child: ${ cmd }${ errorMsg ? `\n${ errorMsg }` : '' }`
             });
         }
     },
