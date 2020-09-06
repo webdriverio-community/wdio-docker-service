@@ -9,6 +9,7 @@ exports.config = {
     runner: 'local',
     capabilities: [{
         browserName: 'chrome',
+        path: '/wd/hub',
         'goog:chromeOptions': {
             args: ['--headless', '--disable-gpu'],
         }

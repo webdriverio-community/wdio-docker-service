@@ -5,6 +5,7 @@ exports.config = {
     specs: [
         './test/integration/docker-selenium/*.spec.js'
     ],
+    path: '/wd/hub',
     runner: 'local',
     capabilities: [{
         browserName: 'chrome'
