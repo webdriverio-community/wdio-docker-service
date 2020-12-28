@@ -9,7 +9,7 @@ exports.config = {
     runner: 'local',
     capabilities: [{
         browserName: 'chrome',
-        path: '/wd/hub',
+        acceptInsecureCerts: true,
         'goog:chromeOptions': {
             args: ['--headless', '--disable-gpu'],
         }
@@ -28,7 +28,7 @@ exports.config = {
     },
     reporters: ['spec'],
     services: [
-        'selenium-standalone',
+        'chromedriver',
         [new DockerLauncher()]
     ],
     dockerLogs: './',
