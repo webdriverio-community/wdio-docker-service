@@ -1,7 +1,6 @@
 import { exec } from 'child_process';
 import serializeOptions from '../utils/optionsSerializer';
 import deepMerge from '../utils/deepMerge';
-import readStream from '../utils/readStream';
 
 const NANOSECONDS = 1000000;
 const DEFAULT_OPTIONS = {
@@ -41,7 +40,7 @@ const DockerEvents = {
         let errorMessage = '';
 
         ps.stderr.on('data', data => {
-            errorMessage += data
+            errorMessage += data;
         });
 
         //Handle sub-process exit
