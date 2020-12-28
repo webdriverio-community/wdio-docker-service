@@ -38,7 +38,11 @@ const DockerEvents = {
         /**
          * Capture stderr
          */
-        const errorMessage = await readStream(ps.stderr);
+        let errorMessage = '';
+
+        ps.stderr.on('data', data => {
+            errorMessage += data
+        });
 
         //Handle sub-process exit
         ps.on('exit', (code) => this._onExit(code, cmd, errorMessage));
