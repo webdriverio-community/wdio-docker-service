@@ -143,3 +143,10 @@ Type: `String`
 
 ## Testing Use Cases / Recipes
 Please visit our [Wiki](https://github.com/stsvilik/wdio-docker-service/wiki) for more details.
+
+## Example for creating GRID + NODE model
+<iframe width="300" height="200" src="https://youtu.be/NDt4alzH5E0" frameborder="0" allowfullscreen></iframe>
+
+## Example for running with your own custom IMAGE
+<iframe width="300" height="200" src="https://youtu.be/Yjg476fg1l0" frameborder="0" allowfullscreen></iframe>
+
