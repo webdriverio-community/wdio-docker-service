@@ -143,3 +143,8 @@ Type: `String`
 
 ## Testing Use Cases / Recipes
 Please visit our [Wiki](https://github.com/stsvilik/wdio-docker-service/wiki) for more details.
+
+Run automation scripts by creating GRID + NODE : https://youtu.be/NDt4alzH5E0
+
+Run automation scripts by creating your own image: https://youtu.be/Yjg476fg1l0
+
