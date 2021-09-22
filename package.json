@@ -28,9 +28,9 @@
   "author": "Simon Tsvilik",
   "license": "MIT",
   "devDependencies": {
-    "@babel/cli": "^7.14.8",
-    "@babel/core": "^7.15.0",
-    "@babel/preset-env": "^7.15.0",
+    "@babel/cli": "^7.15.7",
+    "@babel/core": "^7.15.5",
+    "@babel/preset-env": "^7.15.6",
     "@babel/register": "^7.15.3",
     "@wdio/cli": "^6.12.1",
     "@wdio/local-runner": "^6.12.1",
@@ -39,7 +39,7 @@
     "@wdio/spec-reporter": "^6.11.0",
     "@wdio/sync": "^6.11.0",
     "chai": "^4.3.4",
-    "chromedriver": "^92.0.1",
+    "chromedriver": "^93.0.1",
     "coveralls": "^3.1.1",
     "eslint": "^7.32.0",
     "mocha": "^8.4.0",
@@ -51,7 +51,7 @@
   "dependencies": {
     "@wdio/logger": "^6.10.10",
     "fs-extra": "^9.1.0",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.4"
   },
   "contributors": [
     "Simon Tsvilik <webdevsimon@gmail.com>"
