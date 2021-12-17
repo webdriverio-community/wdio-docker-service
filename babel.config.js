@@ -6,7 +6,7 @@ module.exports = function (api) {
             {
                 debug: false,
                 targets: {
-                    node: '8',
+                    node: '12',
                 },
             },
         ],
