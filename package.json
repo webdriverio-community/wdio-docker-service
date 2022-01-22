@@ -51,7 +51,7 @@
   "dependencies": {
     "@wdio/logger": "^7.16.0",
     "fs-extra": "^10.0.0",
-    "node-fetch": "^2.6.5"
+    "node-fetch": "^3.1.1"
   },
   "contributors": [
     "Simon Tsvilik <webdevsimon@gmail.com>"
