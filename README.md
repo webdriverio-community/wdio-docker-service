@@ -24,7 +24,7 @@ Run:
 npm install wdio-docker-service --save-dev
 ```
 
-Instructions on how to install WebdriverIO can be found [here](http://webdriver.io/guide/getstarted/install.html).
+Instructions on how to install WebdriverIO can be found [here](https://webdriver.io/docs/gettingstarted).
 
 ## Configuration
 By default, Google Chrome, Firefox and PhantomJS are available when installed on the host system. 
