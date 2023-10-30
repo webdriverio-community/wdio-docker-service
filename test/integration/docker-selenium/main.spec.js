@@ -1,6 +1,6 @@
-const { expect } = require('chai');
-const fs = require('fs');
-const path = require('path');
+import { expect } from 'chai';
+import { statSync } from 'fs';
+import { join } from 'path';
 
 describe('when using Docker to run Selenium', function() {
     it('should run a test', async function() {
@@ -10,8 +10,8 @@ describe('when using Docker to run Selenium', function() {
     });
 
     it('should have created a log file', function() {
-        const filePath = path.join(process.cwd(), 'docker-log.txt');
-        const file = fs.statSync(filePath);
+        const filePath = join(process.cwd(), 'docker-log.txt');
+        const file = statSync(filePath);
         expect(file.size).to.be.above(0);
     });
 });

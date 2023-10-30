@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "resolveJsonModule": true,
+        "checkJs": false,
+        "types": ["chai"],
+        "module": "Node16",
+    },
+    "include": ["./**/*.js"], // or "./**/*.js
+    "exclude": ["node_modules"]
+}

@@ -1,6 +1,6 @@
-const DockerLauncher = require('../../../lib/launcher');
+import DockerLauncher from '../../../lib/launcher.js';
 
-exports.config = {
+export const config = {
     host: 'localhost',
     specs: [
         './test/integration/docker-selenium/*.spec.js'
@@ -24,7 +24,7 @@ exports.config = {
     },
     reporters: ['spec'],
     services: [
-        [new DockerLauncher()]
+        [DockerLauncher]
     ],
     dockerLogs: './',
     dockerOptions: {

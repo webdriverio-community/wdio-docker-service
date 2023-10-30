@@ -1,4 +1,4 @@
-const DockerEventsListener = require('../lib/utils/dockerEventsListener').default;
+import DockerEventsListener from '../lib/utils/dockerEventsListener';
 const del = new DockerEventsListener();
 
 del.on('container.create', (event) => {

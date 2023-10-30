@@ -1,6 +1,6 @@
 import { exec } from 'child_process';
-import serializeOptions from '../utils/optionsSerializer';
-import deepMerge from '../utils/deepMerge';
+import serializeOptions from '../utils/optionsSerializer.js';
+import deepMerge from '../utils/deepMerge.js';
 
 const NANOSECONDS = 1000000;
 const DEFAULT_OPTIONS = {
@@ -128,5 +128,5 @@ process.on('message', (options) => {
     DockerEvents.init(options);
 });
 
-module.exports = DockerEvents;
+export default DockerEvents;
 

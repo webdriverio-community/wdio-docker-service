@@ -1,4 +1,4 @@
-import camelToDash from './camelToDash';
+import camelToDash from './camelToDash.js';
 
 const RX_SPACES = /(\s)/g;
 const RX_IS_ESCAPED = /^(["'])([^"']+)(["'])$/;

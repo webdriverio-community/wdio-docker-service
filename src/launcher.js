@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
-import Docker from './utils/docker';
-import getFilePath from './utils/getFilePath';
 import logger from '@wdio/logger';
+import Docker from './utils/docker.js';
+import getFilePath from './utils/getFilePath.js';
 
 const DEFAULT_LOG_FILENAME = 'docker-log.txt';
 const Logger = logger('wdio-docker-service');
@@ -91,4 +91,5 @@ class DockerLauncher {
     }
 }
 
-module.exports = DockerLauncher;
+export { DockerLauncher };
+export default DockerLauncher;

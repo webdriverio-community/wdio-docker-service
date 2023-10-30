@@ -1,6 +1,8 @@
 import EventEmitter from 'events';
 import { fork } from 'child_process';
 import path from 'path';
+import * as url from 'url';
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 const DOCKER_EVENTS_MODULE = path.resolve(__dirname, '..', 'modules/dockerEvents');
 

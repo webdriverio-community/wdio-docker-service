@@ -1,11 +1,12 @@
-import deepMerge from './deepMerge';
+import { EventEmitter } from 'events';
 import fs from 'fs-extra';
 import path from 'path';
-import Ping from './ping';
-import { runCommand, runProcess } from './childProcess';
-import { EventEmitter } from 'events';
-import serializeOptions from './optionsSerializer';
-import DockerEventsListener from './dockerEventsListener';
+
+import Ping from './ping.js';
+import deepMerge from './deepMerge.js';
+import serializeOptions from './optionsSerializer.js';
+import { runCommand, runProcess } from './childProcess.js';
+import DockerEventsListener from './dockerEventsListener.js';
 
 const SPACE = ' ';
 const INSPECT_DOCKER_INTERVAL = 500;

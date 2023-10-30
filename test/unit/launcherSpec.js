@@ -3,7 +3,7 @@ import { stub, spy } from 'sinon';
 import Docker from '../../src/utils/docker';
 
 describe('DockerLauncher', function() {
-    const DockerLauncher = require('../../src/launcher');
+    const DockerLauncher = require('../../src/launcher.js');
     let launcher;
 
     beforeEach(function() {

@@ -1,4 +1,5 @@
-const DockerLauncher = require('./lib/launcher');
+import DockerLauncher from './lib/launcher';
 
-module.exports.default = DockerLauncher;
-module.exports.launcher = DockerLauncher;
+const _default = DockerLauncher;
+export { _default as default };
+export const launcher = DockerLauncher;

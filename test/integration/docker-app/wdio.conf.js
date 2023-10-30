@@ -1,8 +1,10 @@
-const path = require('path');
-const DockerLauncher = require('../../../lib/launcher');
+import { join } from 'path';
+import DockerLauncher from '../../../lib/launcher.js';
+import * as url from 'url';
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
-exports.config = {
-    host: 'localhost',
+export const config = {
+    host: '127.0.0.1',
     specs: [
         './test/integration/docker-app/*.spec.js'
     ],
@@ -15,7 +17,7 @@ exports.config = {
         }
     }],
 
-    baseUrl: 'http://localhost:8080',
+    baseUrl: 'http://127.0.0.1:8080',
     logLevel: 'debug',
 
     waitforTimeout: 10000,
@@ -27,19 +29,20 @@ exports.config = {
         ui: 'bdd'
     },
     reporters: ['spec'],
+    browserName: 'chrome',
+    browserVersion: 'latest',
     services: [
-        'chromedriver',
-        [new DockerLauncher()]
+        [DockerLauncher]
     ],
     dockerLogs: './',
     dockerOptions: {
         image: 'nginx',
-        healthCheck: 'http://localhost:8080',
+        healthCheck: 'http://127.0.0.1:8080',
         options: {
             p: ['8080:8080'],
             v: [
-                `${ path.join(__dirname, '/app/') }:/usr/share/nginx/html:ro`,
-                `${ path.join(__dirname, '/nginx.conf') }:/etc/nginx/nginx.conf:ro`
+                `${ join(__dirname, '/app/') }:/usr/share/nginx/html:ro`,
+                `${ join(__dirname, '/nginx.conf') }:/etc/nginx/nginx.conf:ro`
             ],
             healthCmd: '"curl -sS http://127.0.0.1:8080 || exit 1"',
             healthTimeout: '10s',

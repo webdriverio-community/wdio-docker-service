@@ -1,6 +1,6 @@
 {
   "name": "wdio-docker-service",
-  "version": "3.3.1",
+  "version": "4.0.0",
   "description": "WebdriverIO service to start and stop docker container (for Selenium and more)",
   "repository": {
     "type": "git",
@@ -10,6 +10,7 @@
     "url": "https://github.com/stsvilik/wdio-docker-service/issues"
   },
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "prepublishOnly": "rm -rf ./lib && npm run build",
     "build": "babel ./src --out-dir ./lib",
@@ -30,30 +31,31 @@
   "author": "Simon Tsvilik",
   "license": "MIT",
   "devDependencies": {
-    "@babel/cli": "^7.21.0",
-    "@babel/core": "^7.21.4",
-    "@babel/preset-env": "^7.21.4",
-    "@babel/register": "^7.21.0",
-    "@wdio/cli": "^7.30.2",
-    "@wdio/local-runner": "^7.30.2",
-    "@wdio/mocha-framework": "^7.30.2",
-    "@wdio/selenium-standalone-service": "^7.30.2",
-    "@wdio/spec-reporter": "^7.30.2",
+    "@babel/cli": "^7.23.0",
+    "@babel/core": "^7.23.2",
+    "@babel/preset-env": "^7.23.2",
+    "@babel/register": "^7.22.15",
+    "@types/chai": "^4.3.9",
+    "@types/fs-extra": "^11.0.3",
+    "@types/node-fetch": "^2.6.7",
+    "@types/sinon": "^10.0.20",
+    "@wdio/cli": "^8.20.5",
+    "@wdio/local-runner": "^8.20.5",
+    "@wdio/mocha-framework": "^8.20.3",
+    "@wdio/spec-reporter": "^8.20.0",
     "chai": "^4.3.7",
-    "chromedriver": "^112.0.0",
     "coveralls": "^3.1.1",
     "eslint": "^8.38.0",
     "mocha": "^10.2.0",
     "npm-run-all": "^4.1.5",
     "nyc": "^15.1.0",
     "sinon": "^15.0.3",
-    "wdio-chromedriver-service": "^8.1.1",
-    "webdriverio": "^7.30.2"
+    "webdriverio": "^8.20.4"
   },
   "dependencies": {
-    "@wdio/logger": "^7.26.0",
+    "@wdio/logger": "^8.16.17",
     "fs-extra": "^11.1.1",
-    "node-fetch": "^2.6.9"
+    "node-fetch": "^3.3.2"
   },
   "contributors": [
     "Simon Tsvilik <webdevsimon@gmail.com>"

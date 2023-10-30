@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import { stub, spy } from 'sinon';
-import ChildProcess from 'child_process';
+import * as ChildProcess from 'child_process';
 import MockChildProcess from '../../mocks/MockChildProcess';
-import MockRawDockerEvent from '../../mocks/MockRawDockerEvent';
+import MockRawDockerEvent from '../../mocks/MockRawDockerEvent.json';
 import DockerEvents from '../../../src/modules/dockerEvents';
 
 describe('DockerEvents module', function () {

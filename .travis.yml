@@ -5,7 +5,7 @@ env:
 # Node setup
 language: node_js
 node_js:
-  - '14'
+  - '18'
 
 # Chrome addon
 addons:
