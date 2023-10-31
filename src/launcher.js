@@ -91,5 +91,4 @@ class DockerLauncher {
     }
 }
 
-export { DockerLauncher };
 export default DockerLauncher;
