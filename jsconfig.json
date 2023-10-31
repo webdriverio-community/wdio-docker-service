@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "resolveJsonModule": true,
+        "checkJs": false,
+        "module": "node16",
+    },
+    "include": ["./**/*.js"],
+    "exclude": ["node_modules", "lib"]
+}

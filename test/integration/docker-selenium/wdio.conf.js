@@ -24,7 +24,7 @@ export const config = {
     },
     reporters: ['spec'],
     services: [
-        [DockerLauncher]
+        [[DockerLauncher]]
     ],
     dockerLogs: './',
     dockerOptions: {

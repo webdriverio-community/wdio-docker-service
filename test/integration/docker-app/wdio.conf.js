@@ -30,7 +30,7 @@ export const config = {
     },
     reporters: ['spec'],
     browserName: 'chrome',
-    browserVersion: 'latest',
+    browserVersion: '118.0-chromedriver-118.0',
     services: [
         [DockerLauncher]
     ],
