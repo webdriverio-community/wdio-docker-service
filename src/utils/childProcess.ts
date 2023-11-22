@@ -1,12 +1,11 @@
-import { spawn } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 
 /**
- * Runs continuous shell process
- * @param {String[]} cmd Shell command
- * @return {Promise<process>}
+ * Runs a continuous shell process
+ * @param cmd Shell command
  */
-export function runProcess(cmd) {
-    return new Promise((resolve, reject) => {
+export function runProcess(cmd: string[]) {
+    return new Promise<ChildProcess>((resolve, reject) => {
         const [app, ...args] = cmd;
         const childProcess = spawn(app, args);
 
@@ -21,12 +20,11 @@ export function runProcess(cmd) {
 }
 
 /**
- * Runs shell command
- * @param {String[]} cmd Shell command
- * @return {Promise<process>}
+ * Runs a shell command
+ * @param cmd Shell command
  */
-export function runCommand(cmd) {
-    return new Promise((resolve, reject) => {
+export function runCommand(cmd: string[]) {
+    return new Promise<ChildProcess>((resolve, reject) => {
         const [app, ...args] = cmd;
         const childProcess = spawn(app, args, { stdio: 'ignore' });
 
@@ -40,7 +38,7 @@ export function runCommand(cmd) {
                 return;
             }
 
-            reject(new Error(`Command '${ cmd.join(' ') }' exited with code ${ code }`));
+            reject(new Error(`Command '${cmd.join(' ')}' exited with code ${code}`));
         });
     });
 }

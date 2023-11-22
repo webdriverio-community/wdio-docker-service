@@ -1,21 +1,17 @@
 import EventEmitter from 'events';
-import { fork } from 'child_process';
+import { fork, ChildProcess } from 'child_process';
 import path from 'path';
 import url from 'url';
+
+import type { Logger } from '@wdio/logger';
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 const DOCKER_EVENTS_MODULE = path.resolve(__dirname, '..', 'modules/dockerEvents');
 
-/**
- * @class DockerEventsListener
- * @extends {EventEmitter}
- */
 class DockerEventsListener extends EventEmitter {
-    /**
-     * @constructor
-     * @param {Logger} [logger]
-     */
-    constructor(logger = console) {
+    logger: Logger | Console;
+    _subprocess: ChildProcess | null;
+    constructor(logger: Logger | Console = console) {
         super();
 
         this.logger = logger;
@@ -24,10 +20,10 @@ class DockerEventsListener extends EventEmitter {
         this._onError = this._onError.bind(this);
     }
 
-    /**
-     * @param {Object} opt Command line options for 'docker events'
-     */
-    connect(opt = {}) {
+    connect(
+        /** Command line options for 'docker events' */ 
+        opt: Record<string, unknown> = {}
+    ) {
         this.disconnect();
 
         const sps = fork(DOCKER_EVENTS_MODULE);
@@ -49,10 +45,9 @@ class DockerEventsListener extends EventEmitter {
     }
 
     /**
-     * @param {Object} message Event JSON
-     * @private
+     * @param message Event JSON
      */
-    _onMessage(message) {
+    private _onMessage(message: { type: string; message: string; }) {
         if ('error' === message.type) {
             this._onError(new Error(message.message));
             return;
@@ -61,7 +56,7 @@ class DockerEventsListener extends EventEmitter {
         this.emit(message.type, message);
     }
 
-    _onError(err) {
+    _onError(err: Error) {
         this.logger.error(err);
         this.disconnect();
     }

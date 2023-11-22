@@ -1,24 +1,39 @@
 import fs from 'fs-extra';
-import logger from '@wdio/logger';
-import Docker from './utils/docker.js';
+import logger, { Logger } from '@wdio/logger';
+import Docker, { DockerArgs } from './utils/docker.js';
 import getFilePath from './utils/getFilePath.js';
 
 const DEFAULT_LOG_FILENAME = 'docker-log.txt';
-const Logger = logger('wdio-docker-service');
+const LoggerService = logger('wdio-docker-service');
+
+interface DockerLauncherConfig extends DockerArgs { 
+    dockerOptions: DockerArgs & { image: string };
+    logToStdout?: boolean;
+    dockerLogs?: string | null;
+    watch?: boolean;
+    logLevel?: Logger['setLevel']['arguments'][0];
+    onDockerReady?: () => void;
+
+}
 
 class DockerLauncher {
+    logToStdout?: boolean;
+    docker?: Docker | null;
+    dockerLogs?: string | null;
+    watchMode?: boolean;
+
     constructor() {
         this.logToStdout = false;
         this.docker = null;
         this.dockerLogs = null;
     }
 
-    onPrepare(config) {
+    onPrepare(config: DockerLauncherConfig) {
         this.logToStdout = config.logToStdout;
         this.dockerLogs = config.dockerLogs;
         this.watchMode = !!config.watch;
 
-        Logger.setLevel(config.logLevel || 'info');
+        LoggerService.setLevel(config.logLevel || 'info');
 
         const {
             dockerOptions: {
@@ -42,7 +57,7 @@ class DockerLauncher {
             healthCheck,
             options,
             debug: logLevel && logLevel === 'debug'
-        }, Logger);
+        }, LoggerService);
 
         if (typeof this.dockerLogs === 'string') {
             const logFile = getFilePath(this.dockerLogs, DEFAULT_LOG_FILENAME);
@@ -59,7 +74,7 @@ class DockerLauncher {
                 }
             })
             .catch((err) => {
-                Logger.error(`Failed to run container: ${ err.message }`);
+                LoggerService.error(`Failed to run container: ${ err.message }`);
             });
     }
 
@@ -76,17 +91,13 @@ class DockerLauncher {
         }
     }
 
-    /**
-     * @param logFile
-     * @private
-     */
-    _redirectLogStream(logFile) {
+    _redirectLogStream(logFile: string) {
         // ensure file & directory exists
         return fs.ensureFile(logFile).then(() => {
             const logStream = fs.createWriteStream(logFile, { flags: 'w' });
 
-            this.docker.process.stdout.pipe(logStream);
-            this.docker.process.stderr.pipe(logStream);
+            this.docker?.process?.stdout?.pipe(logStream);
+            this.docker?.process?.stderr?.pipe(logStream);
         });
     }
 }

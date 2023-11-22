@@ -4,31 +4,26 @@ const RX_SPACES = /(\s)/g;
 const RX_IS_ESCAPED = /^(["'])([^"']+)(["'])$/;
 
 /**
- * @param {Object} opt Options to serialize
- * @return {Array}
+ * @param opt Options to serialize
+ * @return
  */
 
-export function serializeOptions(opt) {
+export function serializeOptions(opt: Record<string, unknown>) {
     return Object.keys(opt).reduce((acc, key) => {
         const fixedKey = camelToDash(key);
         const value = sanitizeValue(opt[key]);
         const option = serializeOption(fixedKey, value);
         if (option) {
             if (Array.isArray(option)) {
-                return acc.concat(option);
+                return acc.concat(option as never[]);
             }
-            acc.push(option);
+            acc.push(option as never);
         }
         return acc;
     }, []);
 }
 
-/**
- * @param {String} key
- * @param {*} value
- * @return {Array}
- */
-export function serializeOption(key, value) {
+export function serializeOption(key: string, value: unknown): unknown[] {
     const prefix = key.length > 1 ? '--' : '-';
 
     if (typeof value === 'boolean' && value) {
@@ -42,13 +37,11 @@ export function serializeOption(key, value) {
     if (Array.isArray(value)) {
         return value.reduce((acc, item) => acc.concat([`${ prefix }${ key }`, `${ item }`]), []);
     }
+
+    return [];
 }
 
-/**
- * @param {*} value
- * @return {void | string | *}
- */
-export function sanitizeValue(value) {
+export function sanitizeValue(value: unknown) {
     if (typeof value !== 'string' || RX_IS_ESCAPED.test(value)) {
         return value;
     }

@@ -1,11 +1,13 @@
 {
     "compilerOptions": {
         "target": "ES2022",
-        "module": "ESNext",
+        "module": "Node16",
         "outDir": "lib",
         "strict": true,
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "moduleResolution": "Node16",
     },
-    "include": ["src/*.[jt]s"],
-    "exclude": ["node_modules", "**/__tests__/*"]
+    "include": ["src/**/*.ts"],
+    "exclude": ["node_modules", "**/__tests__/*", "lib/**/*"],
 }

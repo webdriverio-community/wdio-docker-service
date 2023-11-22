@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 
-function Ping(url) {
+function Ping(url: URL) {
     return fetch(url);
 }
 
