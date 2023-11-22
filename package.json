@@ -67,9 +67,6 @@
       "lib",
       "test"
     ],
-    "require": [
-      "@babel/register"
-    ],
     "sourceMap": false,
     "instrument": true,
     "cache": false,

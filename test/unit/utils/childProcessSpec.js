@@ -4,7 +4,6 @@ import { expect } from 'chai';
 import { runProcess, runCommand } from '../../../src/utils/childProcess';
 import { stub } from 'sinon';
 
-
 describe('Child Process utils', function () {
     describe('#runProcess', function () {
         context('when command fails to execute', function () {
