@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ESNext",
+        "outDir": "lib",
+        "strict": true,
+        "esModuleInterop": true
+    },
+    "include": ["src/*.[jt]s"],
+    "exclude": ["node_modules", "**/__tests__/*"]
+}
