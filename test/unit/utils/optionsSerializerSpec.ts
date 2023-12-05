@@ -1,4 +1,4 @@
-import { sanitizeValue, serializeOption, serializeOptions } from '../../../src/utils/optionsSerializer';
+import { sanitizeValue, serializeOption, serializeOptions } from '../../../src/utils/optionsSerializer.ts';
 import { expect } from 'chai';
 
 describe('Options Serializer', function() {

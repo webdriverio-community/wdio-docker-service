@@ -2,8 +2,8 @@ import { expect } from 'chai';
 import { stub, spy } from 'sinon';
 import Docker from '../../src/utils/docker';
 
-describe('DockerLauncher', function() {
-    const DockerLauncher = require('../../src/launcher.js');
+describe('DockerLauncher', async function() {
+    const DockerLauncher = await import('../../src/launcher.js');
     let launcher;
 
     beforeEach(function() {

@@ -1,4 +1,4 @@
-import getFilePath from '../../../src/utils/getFilePath';
+import getFilePath from '../../../src/utils/getFilePath.ts';
 import path from 'path';
 import { expect } from 'chai';
 

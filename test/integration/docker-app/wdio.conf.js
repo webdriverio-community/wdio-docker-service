@@ -6,14 +6,14 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 export const config = {
     host: '127.0.0.1',
     specs: [
-        './test/integration/docker-app/*.spec.js'
+        '**/integration/docker-app/*.spec.ts'
     ],
     runner: 'local',
     capabilities: [{
         browserName: 'chrome',
         acceptInsecureCerts: true,
         'goog:chromeOptions': {
-            args: ['--headless', '--disable-gpu'],
+            args: ['headless', 'disable-gpu'],
         }
     }],
 
@@ -26,11 +26,12 @@ export const config = {
 
     framework: 'mocha',
     mochaOpts: {
-        ui: 'bdd'
+        ui: 'bdd',
+        compilers: ['ts-node/esm'],
     },
     reporters: ['spec'],
     browserName: 'chrome',
-    browserVersion: '118.0-chromedriver-118.0',
+    browserVersion: '119.0-chromedriver-119.0',
     services: [
         [DockerLauncher]
     ],
@@ -41,8 +42,8 @@ export const config = {
         options: {
             p: ['8080:8080'],
             v: [
-                `${ join(__dirname, '/app/') }:/usr/share/nginx/html:ro`,
-                `${ join(__dirname, '/nginx.conf') }:/etc/nginx/nginx.conf:ro`
+                `${join(__dirname, '/app/')}:/usr/share/nginx/html:ro`,
+                `${join(__dirname, '/nginx.conf')}:/etc/nginx/nginx.conf:ro`
             ],
             healthCmd: '"curl -sS http://127.0.0.1:8080 || exit 1"',
             healthTimeout: '10s',

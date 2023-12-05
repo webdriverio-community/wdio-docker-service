@@ -1,4 +1,4 @@
-import DockerLauncher from './lib/launcher';
+import DockerLauncher from './lib/launcher.ts';
 
 const _default = DockerLauncher;
 export { _default as default };

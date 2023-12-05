@@ -1,9 +1,9 @@
-import DockerLauncher from '../../../lib/launcher.js';
+import DockerLauncher from '../../../lib/launcher';
 
 export const config = {
-    host: 'localhost',
+    host: '127.0.0.1',
     specs: [
-        './test/integration/docker-selenium/*.spec.js'
+        './test/integration/docker-selenium/*.spec.ts'
     ],
     path: '/wd/hub',
     runner: 'local',
@@ -20,7 +20,8 @@ export const config = {
 
     framework: 'mocha',
     mochaOpts: {
-        ui: 'bdd'
+        ui: 'bdd',
+        compilers: ['ts-node/esm'],
     },
     reporters: ['spec'],
     services: [
@@ -29,7 +30,7 @@ export const config = {
     dockerLogs: './',
     dockerOptions: {
         image: 'selenium/standalone-chrome',
-        healthCheck: 'http://localhost:4444',
+        healthCheck: 'http://127.0.0.1:4444',
         options: {
             p: ['4444:4444', '7900:7900'],
             shmSize: '2g'

@@ -1,8 +1,8 @@
-import ChildProcess from 'child_process';
-import MockChildProcess from '../../mocks/MockChildProcess';
-import { expect } from 'chai';
-import { runProcess, runCommand } from '../../../src/utils/childProcess';
 import { stub } from 'sinon';
+import { expect } from 'chai';
+import ChildProcess from 'child_process';
+import MockChildProcess from '../../mocks/MockChildProcess.ts';
+import { runProcess, runCommand } from '../../../src/utils/childProcess.ts';
 
 describe('Child Process utils', function () {
     describe('#runProcess', function () {

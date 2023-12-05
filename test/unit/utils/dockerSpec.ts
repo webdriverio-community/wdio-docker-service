@@ -324,8 +324,8 @@ describe('Docker', function() {
     });
 
     describe('#_reportWhenDockerIsRunning', function() {
-        context('when healthCheck is not set', function() {
-            const pingDef = require('../../../src/utils/ping');
+        context('when healthCheck is not set', async function() {
+            const pingDef = await import('../../../src/utils/ping');
 
             before(function() {
                 stub(pingDef, 'default').rejects();
@@ -344,8 +344,8 @@ describe('Docker', function() {
             });
         });
 
-        context('when healthCheck is provided', function() {
-            const pingDef = require('../../../src/utils/ping');
+        context('when healthCheck is provided', async function() {
+            const pingDef = await import('../../../src/utils/ping');
 
             before(function() {
                 stub(pingDef, 'default').resolves();
@@ -367,8 +367,8 @@ describe('Docker', function() {
             });
         });
 
-        context('when maxRetries is specified and url is unreachable', function() {
-            const pingDef = require('../../../src/utils/ping');
+        context('when maxRetries is specified and url is unreachable', async function() {
+            const pingDef = await import('../../../src/utils/ping');
 
             before(function() {
                 stub(pingDef, 'default').rejects();
@@ -397,8 +397,8 @@ describe('Docker', function() {
             });
         });
 
-        context('when healthCheck is provided but is unreachable', function() {
-            const pingDef = require('../../../src/utils/ping');
+        context('when healthCheck is provided but is unreachable', async function() {
+            const pingDef = await import('../../../src/utils/ping');
 
             before(function() {
                 stub(pingDef, 'default').rejects();

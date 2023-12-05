@@ -1,13 +1,13 @@
-import { exec, ChildProcess } from "child_process";
-import serializeOptions from "../utils/optionsSerializer.js";
-import deepMerge from "../utils/deepMerge.js";
+import { exec, ChildProcess } from 'child_process';
+import serializeOptions from '../utils/optionsSerializer.js';
+import deepMerge from '../utils/deepMerge.js';
 
 const NANOSECONDS = 1000000;
 const DEFAULT_OPTIONS = {
     format: '"{{json .}}"',
 };
 
-const CMD = "docker events";
+const CMD = 'docker events';
 
 type EventData = {
     Action: string;
@@ -27,17 +27,17 @@ const DockerEvents = {
      */
     async init(options: Record<string, unknown> = {}) {
         const cmdOptions = deepMerge({}, DEFAULT_OPTIONS, options);
-        const cmd = [CMD].concat(serializeOptions(cmdOptions)).join(" ");
-        const buffer: any[] = [];
+        const cmd = [CMD].concat(serializeOptions(cmdOptions)).join(' ');
+        const buffer: unknown[] = [];
         const ps = exec(cmd);
 
         /**
          * Capture stdout
          */
-        ps.stdout?.setEncoding("utf-8");
-        ps.stdout?.on("data", (data) => {
+        ps.stdout?.setEncoding('utf-8');
+        ps.stdout?.on('data', (data) => {
             buffer.push(data);
-            const jsonString = buffer.join("");
+            const jsonString = buffer.join('');
             const json = this._tryParse(jsonString);
 
             if (json) {
@@ -49,17 +49,17 @@ const DockerEvents = {
         /**
          * Capture stderr
          */
-        let errorMessage = "";
+        let errorMessage = '';
 
-        ps.stderr?.on("data", (data) => {
+        ps.stderr?.on('data', (data) => {
             errorMessage += data;
         });
 
         //Handle sub-process exit
-        ps.on("exit", (code) => this._onExit(code || 0, cmd, errorMessage));
+        ps.on('exit', (code) => this._onExit(code || 0, cmd, errorMessage));
 
         //Handle forked process disconnect
-        process.on("disconnect", () => this._onDisconnect());
+        process.on('disconnect', () => this._onDisconnect());
 
         this.process = ps;
     },
@@ -78,9 +78,10 @@ const DockerEvents = {
     _onExit(code: number, cmd: string, errorMsg: string) {
         if (code !== 0 && process.connected) {
             process.send?.({
-                type: "error",
-                message: `Error executing sub-child: ${cmd}${errorMsg ? `\n${errorMsg}` : ""
-                    }`,
+                type: 'error',
+                message: `Error executing sub-child: ${cmd}${
+                    errorMsg ? `\n${errorMsg}` : ''
+                }`,
             });
         }
     },
@@ -96,17 +97,17 @@ const DockerEvents = {
             from = null,
             id = null,
             scope = null,
-            status = "",
+            status = '',
             timeNano,
             Type,
         } = jsonData;
 
-        const [action] = Action.split(":");
+        const [action] = Action.split(':');
         const eventType = `${Type}.${action}`;
         const args =
-            status.indexOf(":") !== -1
-                ? status.slice(status.indexOf(":") + 1).trim()
-                : "";
+            status.indexOf(':') !== -1
+                ? status.slice(status.indexOf(':') + 1).trim()
+                : '';
 
         process.send?.({
             args,
@@ -131,7 +132,7 @@ const DockerEvents = {
     },
 };
 
-process.on("message", (options) => {
+process.on('message', (options) => {
     DockerEvents.init(options as Record<string, unknown>);
 });
 

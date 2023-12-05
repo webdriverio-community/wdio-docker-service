@@ -1,1 +1,4 @@
 lib
+*.json
+nginx.conf
+index.html

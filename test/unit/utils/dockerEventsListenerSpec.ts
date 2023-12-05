@@ -2,10 +2,10 @@ import { expect } from 'chai';
 import { stub, spy } from 'sinon';
 import path from 'path';
 import ChildProcess from 'child_process';
-import DockerEventsListener from '../../../src/utils/dockerEventsListener';
 import logger from '@wdio/logger';
-import MockForkedProcess from '../../mocks/MockForkedProcess';
-import MockDockerEvent from '../../mocks/MockDockerEvent';
+import MockDockerEvent from '../../mocks/MockDockerEvent.ts';
+import MockForkedProcess from '../../mocks/MockForkedProcess.ts';
+import DockerEventsListener from '../../../src/utils/dockerEventsListener.ts';
 
 const Logger = logger('wdio-docker-service-test');
 
