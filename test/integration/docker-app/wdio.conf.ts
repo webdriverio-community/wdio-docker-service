@@ -1,16 +1,19 @@
 import { join } from 'path';
-import DockerLauncher from '../../../lib/launcher.js';
+import DockerLauncher, { DockerLauncherConfig } from '../../../src/launcher.js';
 import * as url from 'url';
+
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
-export const config = {
-    host: '127.0.0.1',
+export const config: DockerLauncherConfig = {
+    hostname: '127.0.0.1',
+    port: 8080,
     specs: [
-        '**/integration/docker-app/*.spec.ts'
+        '*.spec.ts'
     ],
     runner: 'local',
     capabilities: [{
         browserName: 'chrome',
+        browserVersion: '120.0-chromedriver-120.0',
         acceptInsecureCerts: true,
         'goog:chromeOptions': {
             args: ['headless', 'disable-gpu'],
@@ -30,10 +33,8 @@ export const config = {
         compilers: ['ts-node/esm'],
     },
     reporters: ['spec'],
-    browserName: 'chrome',
-    browserVersion: '119.0-chromedriver-119.0',
     services: [
-        [DockerLauncher]
+        DockerLauncher
     ],
     dockerLogs: './',
     dockerOptions: {

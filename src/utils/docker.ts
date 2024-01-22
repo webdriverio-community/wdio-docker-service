@@ -74,6 +74,8 @@ export type DockerRunArgs = {
     /** MEMs in which to allow execution (0-3, 0,1) */
     cpusetMems?: string;
     /** Run container in background and print container ID */
+    d?: boolean;
+    /** Run container in background and print container ID */
     detach?: boolean;
     /** Override the key sequence for detaching a container */
     detachKeys?: string;
@@ -96,6 +98,7 @@ export type DockerRunArgs = {
     expose?: string[];
     gpus?: string;
     groupAdd?: string[];
+    /** Command to run to check health */
     healthCmd?: string;
     healthInterval?: string;
     healthRetries?: number;
@@ -128,6 +131,7 @@ export type DockerRunArgs = {
     noHealthcheck?: boolean;
     oomKillDisable?: boolean;
     oomScoreAdj?: number;
+    p?: string[]
     pid?: string;
     pidsLimit?: number;
     platform?: string;
@@ -153,6 +157,7 @@ export type DockerRunArgs = {
     user?: string;
     userns?: string;
     uts?: string;
+    v?: string[];
     volume?: string[];
     volumeDriver?: string;
     volumesFrom?: string[];
@@ -176,17 +181,17 @@ export interface DockerArgs {
  * @class {Docker} Provides functionality to run docker container
  */
 class Docker extends EventEmitter {
-    private args?: string;
-    private cidfile: string;
-    private command?: string;
-    private debug: boolean;
-    private healthCheck?: string | HealthCheckArgs | Record<string, never>;
-    private image: string;
-    private logger: Logger | Console;
+    protected args?: string;
+    protected cidfile: string;
+    protected command?: string;
+    protected debug: boolean;
+    protected healthCheck?: string | HealthCheckArgs | Record<string, never>;
+    protected image: string;
+    protected logger: Logger | Console;
     public process: null | ChildProcess;
-    private dockerEventsListener: DockerEventsListener;
-    private dockerRunCommand: string[];
-    private options: Record<string, unknown>;
+    protected dockerEventsListener: DockerEventsListener;
+    protected dockerRunCommand: string[];
+    protected options: Record<string, unknown>;
 
     constructor(
         /** Docker image/tag name */
@@ -257,10 +262,7 @@ class Docker extends EventEmitter {
         this.dockerRunCommand = cmdChain;
     }
 
-    /**
-     * @return {Promise}
-     */
-    run() {
+    async run() {
         this.logger.log(`Docker command: ${this.dockerRunCommand.join(SPACE)}`);
         this.dockerEventsListener.connect({
             filter: `image=${this.image}`,
@@ -336,10 +338,7 @@ class Docker extends EventEmitter {
             });
     }
 
-    /**
-     * @return {Promise}
-     */
-    stop() {
+    async stop() {
         return this._removeStaleContainer().then(() => {
             if (this.process) {
                 this.process.kill(this.process.pid);
@@ -352,11 +351,9 @@ class Docker extends EventEmitter {
     }
 
     /**
-     * Polls for availability of application running in a docker
-     * @return {Promise<any>}
-     * @private
+     * Polls for availability of application running in a docker container
      */
-    _reportWhenDockerIsRunning() {
+    private async _reportWhenDockerIsRunning() {
         const {
             url,
             maxRetries = MAX_INSPECT_ATTEMPTS,
@@ -410,25 +407,23 @@ class Docker extends EventEmitter {
     }
 
     /**
-     * @return {Promise}
-     * @private
+     * Checks if docker image is present
      */
-    _isImagePresent() {
+    private async _isImagePresent() {
         return runCommand(['docker', 'inspect', this.image]);
     }
 
     /**
-     * @return {Promise}
-     * @private
+     * Pulls an image from docker registry
      */
-    _pullImage() {
+    private async _pullImage() {
         return runCommand(['docker', 'pull', this.image]);
     }
 
     /**
      * Removes any stale docker image
      */
-    _removeStaleContainer() {
+    async _removeStaleContainer() {
         return fs
             .readFile(this.cidfile)
             .then((cid) => {
@@ -459,4 +454,19 @@ class Docker extends EventEmitter {
     }
 }
 
+class DockerForTests extends Docker {
+    declare public args?: string;
+    declare public cidfile: string;
+    declare public command?: string;
+    declare public debug: boolean;
+    declare public healthCheck?: string | HealthCheckArgs | Record<string, never>;
+    declare public image: string;
+    declare public logger: Logger | Console;
+    declare public process: null | ChildProcess;
+    declare public dockerEventsListener: DockerEventsListener;
+    declare public dockerRunCommand: string[];
+    declare public options: Record<string, unknown>;
+}
+
 export default Docker;
+export { DockerForTests };

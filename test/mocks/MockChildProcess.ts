@@ -1,9 +1,16 @@
-import { EventEmitter } from 'events';
+// import { EventEmitter } from 'events';
 import { Readable } from 'stream';
-import { spy } from 'sinon';
+import { spy, SinonSpy } from 'sinon';
+import { ChildProcess } from 'child_process';
 
-class MockChildProcess extends EventEmitter {
-    constructor(cmd, args = []) {
+class MockChildProcess extends ChildProcess {
+    cmd: string;
+    args: string[];
+    stdout: Readable;
+    stderr: Readable;
+    kill: SinonSpy;
+
+    constructor(cmd: string, args = []) {
         super();
 
         this.cmd = cmd;

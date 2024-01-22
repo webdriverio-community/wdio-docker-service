@@ -1,7 +1,7 @@
-import DockerLauncher from '../../../lib/launcher';
+import DockerLauncher, { DockerLauncherConfig } from '../../../src/launcher.js';
 
-export const config = {
-    host: '127.0.0.1',
+export const config: DockerLauncherConfig = {
+    hostname: '127.0.0.1',
     specs: [
         './test/integration/docker-selenium/*.spec.ts'
     ],
@@ -25,7 +25,7 @@ export const config = {
     },
     reporters: ['spec'],
     services: [
-        [[DockerLauncher]]
+        DockerLauncher
     ],
     dockerLogs: './',
     dockerOptions: {

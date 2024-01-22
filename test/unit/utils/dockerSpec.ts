@@ -1,10 +1,10 @@
 import { expect } from 'chai';
 import path from 'path';
 import { stub, spy } from 'sinon';
-import Docker from '../../../src/utils/docker';
+import { DockerForTests as Docker } from '../../../src/utils/docker.js';
 import fs from 'fs-extra';
-import * as ChildProcess from '../../../src/utils/childProcess';
-import DockerEventsListener from '../../../src/utils/dockerEventsListener';
+import * as ChildProcess from '../../../src/utils/childProcess.js';
+import DockerEventsListener from '../../../src/utils/dockerEventsListener.js';
 
 describe('Docker', function() {
     const SPACE = ' ';
@@ -12,6 +12,7 @@ describe('Docker', function() {
     describe('#constructor', function() {
         context('when image argument is not provided', function() {
             const tryToInstantiate = () => {
+                // @ts-expect-error Checking for error case here
                 new Docker();
             };
 
@@ -46,6 +47,7 @@ describe('Docker', function() {
                         options: {
                             d: true,
                             p: ['1234:1234'],
+                            // @ts-expect-error allowing unknown options
                             foo: 'bar'
                         }
                     });
@@ -97,7 +99,7 @@ describe('Docker', function() {
 
     describe('#stop', function() {
         const killSpy = spy();
-        let mockProcess = {
+        const mockProcess = {
             kill: killSpy
         };
 
@@ -398,7 +400,7 @@ describe('Docker', function() {
         });
 
         context('when healthCheck is provided but is unreachable', async function() {
-            const pingDef = await import('../../../src/utils/ping');
+            const pingDef = await import('../../../src/utils/ping.js');
 
             before(function() {
                 stub(pingDef, 'default').rejects();

@@ -2,7 +2,13 @@ import { EventEmitter } from 'events';
 import { spy, stub } from 'sinon';
 
 class MockForkedProcess extends EventEmitter {
-    constructor(module) {
+    connected: boolean;
+    module: string;
+    pid: number;
+    send: unknown;
+    disconnect: unknown;
+
+    constructor(module: string) {
         super();
 
         this.connected = true;
@@ -18,7 +24,7 @@ class MockForkedProcess extends EventEmitter {
         this.emit('error', new Error(error));
     }
 
-    mockMessage(message) {
+    mockMessage(message: string) {
         this.emit('message', message);
     }
 }

@@ -3,20 +3,21 @@ import logger, { Logger } from '@wdio/logger';
 import Docker, { DockerArgs } from './utils/docker.js';
 import getFilePath from './utils/getFilePath.js';
 
+import { Services, Options } from '@wdio/types';
+
 const DEFAULT_LOG_FILENAME = 'docker-log.txt';
 const LoggerService = logger('wdio-docker-service');
 
-interface DockerLauncherConfig extends DockerArgs { 
+export interface DockerLauncherConfig extends Options.Testrunner { 
     dockerOptions: DockerArgs & { image: string };
     logToStdout?: boolean;
     dockerLogs?: string | null;
     watch?: boolean;
     logLevel?: Logger['setLevel']['arguments'][0];
     onDockerReady?: () => void;
-
 }
 
-class DockerLauncher {
+class DockerLauncher implements Services.ServiceInstance {
     logToStdout?: boolean;
     docker?: Docker | null;
     dockerLogs?: string | null;
@@ -28,7 +29,7 @@ class DockerLauncher {
         this.dockerLogs = null;
     }
 
-    onPrepare(config: DockerLauncherConfig) {
+    async onPrepare(config: DockerLauncherConfig) {
         this.logToStdout = config.logToStdout;
         this.dockerLogs = config.dockerLogs;
         this.watchMode = !!config.watch;
@@ -67,15 +68,14 @@ class DockerLauncher {
             });
         }
 
-        return this.docker.run()
-            .then(() => {
-                if (typeof onDockerReady === 'function') {
-                    onDockerReady();
-                }
-            })
-            .catch((err) => {
-                LoggerService.error(`Failed to run container: ${ err.message }`);
-            });
+        try {
+            await this.docker.run();
+            if (typeof onDockerReady === 'function') {
+                onDockerReady();
+            }
+        } catch (err) {
+            LoggerService.error(`Failed to run container: ${(err as Record<string, unknown>).message}`);
+        }
     }
 
     onComplete() {

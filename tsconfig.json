@@ -7,14 +7,18 @@
         "esModuleInterop": true,
         "resolveJsonModule": true,
         "moduleResolution": "Node16",
+        "skipLibCheck": true,
         "types": [
             "node",
             "@types/mocha",
             "@wdio/globals/types",
-            "@wdio/mocha-framework",
+            "@wdio/mocha-framework"
         ],
         "typeRoots": ["./node_modules", "./node_modules/@types"]
     },
-    "include": ["src/**/*.ts"],
-    "exclude": ["node_modules", "**/__tests__/*.spec.ts", "lib/**/*"],
+    "ts-node": {
+        "files": true
+    },
+    "include": ["src/**/*.ts", "test/**/*.ts"],
+    "exclude": ["node_modules/**", "**/__tests__/*.spec.ts", "lib/**/*"]
 }

@@ -1,4 +1,4 @@
-import { sanitizeValue, serializeOption, serializeOptions } from '../../../src/utils/optionsSerializer.ts';
+import { sanitizeValue, serializeOption, serializeOptions } from '../../../src/utils/optionsSerializer.js';
 import { expect } from 'chai';
 
 describe('Options Serializer', function() {
@@ -59,7 +59,7 @@ describe('Options Serializer', function() {
                 e: ['123=345', '678=901']
             };
 
-            expect(serializeOptions(options)).to.deep.eql([
+            expect(serializeOptions(options)).to.deep.equal([
                 '-d',
                 '--foo',
                 '--boo', 'bop',
@@ -80,10 +80,10 @@ describe('Options Serializer', function() {
 
         context('when value is string', function() {
             context('when platform is win32', function() {
-                let originalPlatformGetter;
+                let originalPlatformGetter: PropertyDescriptor;
 
                 beforeEach(function() {
-                    originalPlatformGetter = Object.getOwnPropertyDescriptor(process, 'platform');
+                    originalPlatformGetter = Object.getOwnPropertyDescriptor(process, 'platform') || {};
                     Object.defineProperty(process, 'platform', {
                         value: 'win32'
                     });
@@ -99,10 +99,10 @@ describe('Options Serializer', function() {
             });
 
             context('when platform is NOT win32', function() {
-                let originalPlatformGetter;
+                let originalPlatformGetter: PropertyDescriptor;
 
                 beforeEach(function() {
-                    originalPlatformGetter = Object.getOwnPropertyDescriptor(process, 'platform');
+                    originalPlatformGetter = Object.getOwnPropertyDescriptor(process, 'platform') || {};
                     Object.defineProperty(process, 'platform', {
                         value: 'darwin'
                     });
