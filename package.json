@@ -13,10 +13,10 @@
   "type": "module",
   "scripts": {
     "prepublishOnly": "rm -rf ./lib && npm run build",
-    "build": "tsc --project tsconfig.build.json",
-    "build:dev": "rm -rf ./lib && tsc --sourceMap --project tsconfig.build.json",
+    "build": "tsc",
+    "build:dev": "rm -rf ./lib && tsc --sourceMap",
     "test": "eslint -c .eslintrc.cjs \"src/**\" \"test/**\" && npm run test:unit && npm run test:integration",
-    "test:unit": "nyc mocha --loader ts-node-esm -T -P ./tsconfig.build.json --extensions ts --recursive ./test/unit",
+    "test:unit": "c8 mocha",
     "test:app": "wdio test/integration/docker-app/wdio.conf.ts",
     "test:selenium": "wdio test/integration/docker-selenium/wdio.conf.ts",
     "test:integration": "run-s build:dev test:app test:selenium"
@@ -42,6 +42,7 @@
     "@wdio/local-runner": "^8.28.8",
     "@wdio/mocha-framework": "^8.28.8",
     "@wdio/spec-reporter": "^8.28.8",
+    "c8": "^9.1.0",
     "chai": "^5.0.0",
     "coveralls": "^3.1.1",
     "eslint": "^8.56.0",

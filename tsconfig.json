@@ -1,10 +1,10 @@
 {
     "compilerOptions": {
-        "target": "ES2022",
-        "module": "Node16",
+        "target": "ES2020",
+        "module": "ESNext",
         "strict": true,
         "esModuleInterop": true,
-        "moduleResolution": "Node16",
+        "moduleResolution": "Node10",
         "allowImportingTsExtensions": true,
         "declaration": true,
         "noEmit": true,
@@ -23,8 +23,10 @@
         "typeRoots": ["./node_modules", "./node_modules/@types"],
     },
     "ts-node": {
-        "files": true
+        "files": true,
+        "transpileOnly": true,
+        "esm": true
     },
-    "include": ["./index.ts", "./src/**/*.ts", "./test/**/*.ts"],
+    "include": ["./src/**/*.ts"],
     "exclude": ["./node_modules/**", "./lib/**/*"]
 }
