@@ -1,20 +1,19 @@
-// import { EventEmitter } from 'events';
 import { Readable } from 'stream';
 import { spy, SinonSpy } from 'sinon';
 import { ChildProcess } from 'child_process';
 
 class MockChildProcess extends ChildProcess {
     cmd: string;
-    args: string[];
+    args?: string[];
     stdout: Readable;
     stderr: Readable;
     kill: SinonSpy;
 
-    constructor(cmd: string, args = []) {
+    constructor(cmd: string, args: readonly string[] = []) {
         super();
 
         this.cmd = cmd;
-        this.args = args;
+        this.args = [...args];
 
         this.stdout = new Readable({
             read() {

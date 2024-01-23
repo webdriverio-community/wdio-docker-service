@@ -4,6 +4,7 @@ import path from 'path';
 import url from 'url';
 
 import type { Logger } from '@wdio/logger';
+
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 const DOCKER_EVENTS_MODULE = path.resolve(__dirname, '..', 'modules/dockerEvents');
@@ -11,6 +12,7 @@ const DOCKER_EVENTS_MODULE = path.resolve(__dirname, '..', 'modules/dockerEvents
 class DockerEventsListener extends EventEmitter {
     logger: Logger | Console;
     _subprocess: ChildProcess | null;
+    
     constructor(logger: Logger | Console = console) {
         super();
 
@@ -47,7 +49,7 @@ class DockerEventsListener extends EventEmitter {
     /**
      * @param message Event JSON
      */
-    private _onMessage(message: { type: string; message: string; }) {
+    protected _onMessage(message: { type: string; message: string; }) {
         if ('error' === message.type) {
             this._onError(new Error(message.message));
             return;

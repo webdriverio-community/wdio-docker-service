@@ -1,12 +1,12 @@
 import { expect } from 'chai';
 import { stub, spy, SinonStub, SinonSpy } from 'sinon';
 import ChildProcess from 'child_process';
-import MockChildProcess from '../../mocks/MockChildProcess.js';
-import MockRawDockerEvent from '../../mocks/MockRawDockerEvent.json';
-import DockerEvents from '../../../src/modules/dockerEvents.js';
+import DockerEvents from '@/modules/dockerEvents.js';
+import MockChildProcess from '@test/mocks/MockChildProcess.js';
+import MockRawDockerEvent from '@test/mocks/MockRawDockerEvent.json';
 
 describe('DockerEvents module', function () {
-    let stubbedExec: SinonStub<string[]>;
+    let stubbedExec: SinonStub<Parameters<typeof ChildProcess['exec']>>;
 
     beforeEach(function () {
         stub(ChildProcess, 'exec').callsFake(cmd => {

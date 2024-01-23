@@ -1,14 +1,15 @@
-import { stub } from 'sinon';
+import { SinonStub, stub } from 'sinon';
 import { expect } from 'chai';
 import ChildProcess from 'child_process';
-import MockChildProcess from '../../mocks/MockChildProcess.ts';
-import { runProcess, runCommand } from '../../../src/utils/childProcess.ts';
+import MockChildProcess from '@test/mocks/MockChildProcess.js';
+import { runProcess, runCommand } from '@/utils/childProcess.js';
 
 describe('Child Process utils', function () {
     describe('#runProcess', function () {
         context('when command fails to execute', function () {
+            let stubSpawn: SinonStub<Parameters<typeof ChildProcess['spawn']>>;
             before(function () {
-                stub(ChildProcess, 'spawn').callsFake((cmd, args) => {
+                stubSpawn = stub(ChildProcess, 'spawn').callsFake((cmd, args) => {
                     const mp = new MockChildProcess(cmd, args);
 
                     process.nextTick(() => {
@@ -20,7 +21,7 @@ describe('Child Process utils', function () {
             });
 
             after(function () {
-                ChildProcess.spawn.restore();
+                stubSpawn.restore();
             });
 
             it('must reject with error', function () {
@@ -32,30 +33,30 @@ describe('Child Process utils', function () {
         });
 
         context('when command is successful', function () {
+            let stubSpawn: SinonStub<Parameters<typeof ChildProcess['spawn']>>;
             before(function () {
-                stub(ChildProcess, 'spawn').callsFake((cmd, args) => {
+                stubSpawn = stub(ChildProcess, 'spawn').callsFake((cmd, args) => {
                     const mp = new MockChildProcess(cmd, args);
                     return mp;
                 });
             });
 
             after(function () {
-                ChildProcess.spawn.restore();
+                stubSpawn.restore();
             });
 
-            it('must resolve promise with child process', function () {
-                return runProcess(['foo', 'bar'])
-                    .then((childProcess) => {
-                        expect(childProcess).to.be.instanceOf(MockChildProcess);
-                    });
+            it('must resolve promise with child process', async function () {
+                const childProcess = await runProcess(['foo', 'bar']);
+                expect(childProcess).to.be.instanceOf(MockChildProcess);
             });
         });
     });
 
     describe('#runCommand', function () {
         context('when command fails to execute', function () {
+            let stubSpawn: SinonStub<Parameters<typeof ChildProcess['spawn']>>;
             before(function () {
-                stub(ChildProcess, 'spawn').callsFake((cmd, args) => {
+                stubSpawn = stub(ChildProcess, 'spawn').callsFake((cmd, args) => {
                     const mp = new MockChildProcess(cmd, args);
 
                     process.nextTick(() => {
@@ -67,20 +68,24 @@ describe('Child Process utils', function () {
             });
 
             after(function () {
-                ChildProcess.spawn.restore();
+                stubSpawn.restore();
             });
 
-            it('must reject with error', function () {
-                return runCommand('foo', ['bar'])
-                    .catch((err) => {
-                        expect(err).to.be.instanceOf(Error);
-                    });
+            it('must reject with error', async function () {
+                try {
+                    // @ts-expect-error Testing invalid arguments
+                    return await runCommand('foo', ['bar']);
+                } catch (err) {
+                    expect(err).to.be.instanceOf(Error);
+                }
             });
         });
 
         context('when command returns non 0 return code', function () {
+            let stubSpawn: SinonStub<Parameters<typeof ChildProcess['spawn']>>;
+
             before(function () {
-                stub(ChildProcess, 'spawn').callsFake((cmd, args) => {
+                stubSpawn = stub(ChildProcess, 'spawn').callsFake((cmd, args) => {
                     const mp = new MockChildProcess(cmd, args);
 
                     process.nextTick(() => {
@@ -92,21 +97,24 @@ describe('Child Process utils', function () {
             });
 
             after(function () {
-                ChildProcess.spawn.restore();
+                stubSpawn.restore();
             });
 
-            it('must reject with error', function () {
-                return runCommand(['foo', 'bar'])
-                    .catch((err) => {
-                        expect(err).to.be.instanceOf(Error);
-                        expect(err.message).to.eql('Command \'foo bar\' exited with code 123');
-                    });
+            it('must reject with error', async function () {
+                try {
+                    return await runCommand(['foo', 'bar']);
+                } catch (err) {
+                    expect(err).to.be.instanceOf(Error);
+                    expect((err as Error).message).to.eql('Command \'foo bar\' exited with code 123');
+                }
             });
         });
 
         context('when command runs successfully', function () {
+            let stubSpawn: SinonStub<Parameters<typeof ChildProcess['spawn']>>;
+
             before(function () {
-                stub(ChildProcess, 'spawn').callsFake((cmd, args) => {
+                stubSpawn = stub(ChildProcess, 'spawn').callsFake((cmd, args) => {
                     const mp = new MockChildProcess(cmd, args);
 
                     process.nextTick(() => {
@@ -118,14 +126,13 @@ describe('Child Process utils', function () {
             });
 
             after(function () {
-                ChildProcess.spawn.restore();
+                stubSpawn.restore();
             });
 
-            it('must resolve promise with child process', function () {
-                return runCommand('foo', ['bar'])
-                    .then((childProcess) => {
-                        expect(childProcess).to.be.instanceOf(MockChildProcess);
-                    });
+            it('must resolve promise with child process', async function () {
+                // @ts-expect-error Need to check these args
+                const childProcess = await runCommand('foo', ['bar']);
+                expect(childProcess).to.be.instanceOf(MockChildProcess);
             });
         });
     });

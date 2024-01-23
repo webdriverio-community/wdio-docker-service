@@ -1,5 +1,5 @@
-import deepMerge from '../../../src/utils/deepMerge.js';
 import { expect } from 'chai';
+import deepMerge from '@/utils/deepMerge.js';
 
 describe('#deepMerge', function () {
     context('when a single plain object source is provided', function () {
@@ -11,7 +11,7 @@ describe('#deepMerge', function () {
         };
 
         it('must merge source with destination', function () {
-            expect(deepMerge(dest, source)).to.deep.eql({
+            expect(deepMerge(dest, source)).to.deep.equal({
                 foo: 'bar',
                 bar: 'foo'
             });
@@ -32,7 +32,7 @@ describe('#deepMerge', function () {
         };
 
         it('must merge sources with destination', function () {
-            expect(deepMerge(dest, source1, source2)).to.deep.eql({
+            expect(deepMerge(dest, source1, source2)).to.deep.equal({
                 foo: 'bar',
                 foo2: 'bar2',
                 bar: 'foo'
@@ -53,7 +53,7 @@ describe('#deepMerge', function () {
         };
 
         it('must merge nested properties of source and destination', function () {
-            expect(deepMerge(dest, source)).to.deep.eql({
+            expect(deepMerge(dest, source)).to.deep.equal({
                 foo: {
                     child1: 'bar',
                     child2: 'foo'
@@ -71,7 +71,7 @@ describe('#deepMerge', function () {
         };
 
         it('must merge nested properties of source and destination', function () {
-            expect(deepMerge(dest, source)).to.deep.eql({
+            expect(deepMerge(dest, source)).to.deep.equal({
                 children: ['bar', 'foo']
             });
         });

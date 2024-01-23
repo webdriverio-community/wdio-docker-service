@@ -1,5 +1,5 @@
-import camelToDash from '../../../src/utils/camelToDash.js';
 import { expect } from 'chai';
+import camelToDash from '@/utils/camelToDash.js';
 
 describe('#camelToDash', function () {
     context('when string is camel cased', function () {

@@ -1,4 +1,4 @@
-import DockerEventsListener from '../lib/utils/dockerEventsListener';
+import DockerEventsListener from '@/utils/dockerEventsListener.js';
 const del = new DockerEventsListener();
 
 del.on('container.create', (event) => {

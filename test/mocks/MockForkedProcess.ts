@@ -1,12 +1,10 @@
-import { EventEmitter } from 'events';
+import { ChildProcess } from 'child_process';
 import { spy, stub } from 'sinon';
 
-class MockForkedProcess extends EventEmitter {
+class MockForkedProcess extends ChildProcess {
     connected: boolean;
     module: string;
     pid: number;
-    send: unknown;
-    disconnect: unknown;
 
     constructor(module: string) {
         super();
@@ -24,7 +22,7 @@ class MockForkedProcess extends EventEmitter {
         this.emit('error', new Error(error));
     }
 
-    mockMessage(message: string) {
+    mockMessage(message: string | Record<string, unknown>) {
         this.emit('message', message);
     }
 }

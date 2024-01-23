@@ -2,11 +2,17 @@
     "compilerOptions": {
         "target": "ES2022",
         "module": "Node16",
-        "outDir": "lib",
         "strict": true,
         "esModuleInterop": true,
-        "resolveJsonModule": true,
         "moduleResolution": "Node16",
+        "allowImportingTsExtensions": true,
+        "declaration": true,
+        "noEmit": true,
+        "paths": {
+            "@/*": ["./src/*"],
+            "@test/*": ["./test/*"]
+        },
+        "resolveJsonModule": true,
         "skipLibCheck": true,
         "types": [
             "node",
@@ -14,11 +20,11 @@
             "@wdio/globals/types",
             "@wdio/mocha-framework"
         ],
-        "typeRoots": ["./node_modules", "./node_modules/@types"]
+        "typeRoots": ["./node_modules", "./node_modules/@types"],
     },
     "ts-node": {
         "files": true
     },
-    "include": ["src/**/*.ts", "test/**/*.ts"],
-    "exclude": ["node_modules/**", "**/__tests__/*.spec.ts", "lib/**/*"]
+    "include": ["./index.ts", "./src/**/*.ts", "./test/**/*.ts"],
+    "exclude": ["./node_modules/**", "./lib/**/*"]
 }

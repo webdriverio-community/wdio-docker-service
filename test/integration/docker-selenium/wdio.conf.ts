@@ -1,4 +1,4 @@
-import DockerLauncher, { DockerLauncherConfig } from '../../../src/launcher.js';
+import DockerLauncher, { DockerLauncherConfig } from '@/launcher.js';
 
 export const config: DockerLauncherConfig = {
     hostname: '127.0.0.1',

@@ -31,7 +31,7 @@ By default, Google Chrome, Firefox and PhantomJS are available when installed on
 In order to use the service you need to add `docker` to your service array:
 
 ```javascript
-// wdio.conf.js
+// wdio.conf.ts
 exports.config = {
    // ...
    services: ['docker'],

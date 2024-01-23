@@ -93,6 +93,9 @@ export type DockerRunArgs = {
     dnsSearch?: string[];
     domainname?: string;
     entrypoint?: string;
+    /** Set environment variables */
+    e?: string[];
+    /** Set environment variables */
     env?: string[];
     envFile?: string[];
     expose?: string[];
@@ -353,7 +356,7 @@ class Docker extends EventEmitter {
     /**
      * Polls for availability of application running in a docker container
      */
-    private async _reportWhenDockerIsRunning() {
+    protected async _reportWhenDockerIsRunning() {
         const {
             url,
             maxRetries = MAX_INSPECT_ATTEMPTS,
@@ -409,14 +412,14 @@ class Docker extends EventEmitter {
     /**
      * Checks if docker image is present
      */
-    private async _isImagePresent() {
+    protected async _isImagePresent() {
         return runCommand(['docker', 'inspect', this.image]);
     }
 
     /**
      * Pulls an image from docker registry
      */
-    private async _pullImage() {
+    protected async _pullImage() {
         return runCommand(['docker', 'pull', this.image]);
     }
 
@@ -466,6 +469,9 @@ class DockerForTests extends Docker {
     declare public dockerEventsListener: DockerEventsListener;
     declare public dockerRunCommand: string[];
     declare public options: Record<string, unknown>;
+    declare public _reportWhenDockerIsRunning: () => Promise<void>;
+    declare public _isImagePresent: () => Promise<ChildProcess>;
+    declare public _pullImage: () => Promise<ChildProcess>;
 }
 
 export default Docker;

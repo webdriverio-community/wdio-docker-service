@@ -1,6 +1,6 @@
 import fs from 'fs-extra';
 import logger, { Logger } from '@wdio/logger';
-import Docker, { DockerArgs } from './utils/docker.js';
+import Docker, { DockerArgs, DockerForTests } from './utils/docker.js';
 import getFilePath from './utils/getFilePath.js';
 
 import { Services, Options } from '@wdio/types';
@@ -102,4 +102,12 @@ class DockerLauncher implements Services.ServiceInstance {
     }
 }
 
+class DockerLauncherForTests extends DockerLauncher {
+    public declare logToStdout?: boolean;
+    public declare docker?: DockerForTests | null;
+    public declare dockerLogs?: string | null;
+    public declare watchMode?: boolean;
+}
+
 export default DockerLauncher;
+export { DockerLauncherForTests };

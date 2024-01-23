@@ -6,3 +6,4 @@
 /coverage/
 /docker-log.txt
 /lib/
+*.tsbuildinfo

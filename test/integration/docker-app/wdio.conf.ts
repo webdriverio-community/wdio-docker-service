@@ -1,5 +1,5 @@
 import { join } from 'path';
-import DockerLauncher, { DockerLauncherConfig } from '../../../src/launcher.js';
+import DockerLauncher, { DockerLauncherConfig } from '@/launcher.js';
 import * as url from 'url';
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
@@ -19,6 +19,11 @@ export const config: DockerLauncherConfig = {
             args: ['headless', 'disable-gpu'],
         }
     }],
+    autoCompileOpts: {
+        tsNodeOpts: {
+            project: '../../../tsconfig.build.json',
+        },
+    },
 
     baseUrl: 'http://127.0.0.1:8080',
     logLevel: 'debug',
