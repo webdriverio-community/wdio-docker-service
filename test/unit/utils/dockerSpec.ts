@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import { expect } from 'chai';
-import { stub, spy, SinonStub, SinonSpy } from 'sinon';
+import { stub, spy, createSandbox, SinonStub, SinonSpy, SinonSandbox } from 'sinon';
 import * as ChildProcess from '@/utils/childProcess.js';
 import { DockerForTests as Docker } from '@/utils/docker.js';
 import DockerEventsListener from '@/utils/dockerEventsListener.js';
@@ -375,35 +375,36 @@ describe('Docker', function () {
 
     describe('#_reportWhenDockerIsRunning', function () {
         context('when healthCheck is not set', async function () {
-            const pingDef = await import('@/utils/ping.js');
-            let stubPing: SinonStub<Parameters<typeof pingDef.default>>;
+            const pingDef = (await import('@/utils/ping.js')).default;
+            let stubPing: SinonStub<Parameters<typeof pingDef.prototype.Ping>>;
+            let sandbox: SinonSandbox;
 
             before(function () {
-                stubPing = stub(pingDef, 'default').rejects();
+                sandbox = createSandbox();
+                stubPing = sandbox.stub(pingDef.prototype, 'Ping').rejects();
             });
 
-            after(function () {
-                stubPing.restore();
+            afterEach(function () {
+                sandbox.restore();
             });
 
-            it('must resolve promise right away', function () {
+            it('must resolve promise right away', async function () {
                 const docker = new Docker('my-image');
 
-                return docker._reportWhenDockerIsRunning().then(() => {
-                    expect(stubPing.called).to.eql(false);
-                });
+                await docker._reportWhenDockerIsRunning();
+                expect(stubPing.called).to.eql(false);
             });
         });
 
         context('when healthCheck is provided', async function () {
-            const pingDef = await import('@/utils/ping.js');
+            const pingDef = (await import('@/utils/ping.js')).default;
             const newUrl = new URL('http://localhost:8080');
-            let stubPing: SinonStub<Parameters<typeof pingDef.default>>;
+            let stubPing: SinonStub<Parameters<typeof pingDef.prototype.Ping>>;
             let spyClearTimeout: SinonSpy<Parameters<typeof global.clearTimeout>>;
 
             before(function () {
-                stub(pingDef, 'default').resolves();
-                spy(global, 'clearTimeout');
+                stubPing = stub(pingDef.prototype, 'Ping').resolves();
+                spyClearTimeout = spy(global, 'clearTimeout');
             });
 
             after(function () {
@@ -424,12 +425,12 @@ describe('Docker', function () {
         });
 
         context('when maxRetries is specified and url is unreachable', async function () {
-            const pingDef = await import('@/utils/ping.js');
-            let stubPing: SinonStub<Parameters<typeof pingDef.default>>;
+            const pingDef = (await import('@/utils/ping.js')).default;
+            let stubPing: SinonStub<Parameters<typeof pingDef.prototype.Ping>>;
             let spyClearTimeout: SinonSpy<Parameters<typeof global.clearTimeout>>;
 
             before(function () {
-                stubPing = stub(pingDef, 'default').rejects();
+                stubPing = stub(pingDef.prototype, 'Ping').rejects();
                 spyClearTimeout = spy(global, 'clearTimeout');
             });
 
@@ -456,13 +457,13 @@ describe('Docker', function () {
         });
 
         context('when healthCheck is provided but is unreachable', async function () {
-            const pingDef = await import('@/utils/ping.js');
+            const pingDef = (await import('@/utils/ping.js')).default;
             const newUrl = new URL('http://localhost:8080');
-            let stubPing: SinonStub<Parameters<typeof pingDef.default>>;
+            let stubPing: SinonStub<Parameters<typeof pingDef.prototype.Ping>>;
             let spyClearTimeout: SinonSpy<Parameters<typeof global.clearTimeout>>;
 
             before(function () {
-                stubPing = stub(pingDef, 'default').rejects();
+                stubPing = stub(pingDef.prototype, 'Ping').rejects();
                 spyClearTimeout = spy(global, 'clearTimeout');
             });
 
@@ -471,17 +472,19 @@ describe('Docker', function () {
                 spyClearTimeout.restore();
             });
 
-            it('must attempt to ping healthCheck url and then exit', function () {
+            it('must attempt to ping healthCheck url and then exit', async function () {
                 const docker = new Docker('my-image', {
                     healthCheck: newUrl.href,
                 });
 
                 this.timeout(15000);
 
-                return docker._reportWhenDockerIsRunning().catch(() => {
+                try {
+                    await docker._reportWhenDockerIsRunning();
+                } catch {
                     expect(spyClearTimeout.called).to.eql(true);
                     expect(stubPing.calledWith(newUrl)).to.eql(true);
-                });
+                }
             });
         });
     });

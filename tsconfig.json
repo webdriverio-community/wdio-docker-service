@@ -1,17 +1,19 @@
 {
     "compilerOptions": {
         "target": "ES2020",
-        "module": "ESNext",
+        "module": "ES2020",
+        "lib": ["ES2020"],
         "strict": true,
-        "esModuleInterop": true,
+        "baseUrl": "src",
+        "outDir": "./lib",
         "moduleResolution": "Node10",
-        "allowImportingTsExtensions": true,
-        "declaration": true,
-        "noEmit": true,
         "paths": {
-            "@/*": ["./src/*"],
-            "@test/*": ["./test/*"]
+            "@/*": ["./*"],
         },
+        "noEmitOnError": true,
+        "declaration": true,
+        "declarationMap": true,
+        "esModuleInterop": true,
         "resolveJsonModule": true,
         "skipLibCheck": true,
         "types": [
@@ -24,9 +26,10 @@
     },
     "ts-node": {
         "files": true,
-        "transpileOnly": true,
-        "esm": true
+        "esm": true,
+        "swc": true,
+        "experimentalResolver": true
     },
-    "include": ["./src/**/*.ts"],
+    "include": ["./src/**/*", "./src/cjs/package.json"],
     "exclude": ["./node_modules/**", "./lib/**/*"]
 }

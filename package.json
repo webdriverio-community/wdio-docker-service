@@ -9,16 +9,30 @@
   "bugs": {
     "url": "https://github.com/stsvilik/wdio-docker-service/issues"
   },
-  "main": "index.js",
   "type": "module",
+  "main": "./lib/cjs/index.js",
+  "module": "./lib/index.js",
+  "exports": {
+    ".": [
+      {
+        "import": "./lib/index.js",
+        "require": "./lib/cjs/index.js"
+      },
+      "./lib/cjs/index.js"
+    ]
+  },
+  "types": "./lib/index.d.ts",
+  "engines": {
+    "node": ">=18 || >=20"
+  },
   "scripts": {
     "prepublishOnly": "rm -rf ./lib && npm run build",
     "build": "tsc",
     "build:dev": "rm -rf ./lib && tsc --sourceMap",
     "test": "eslint -c .eslintrc.cjs \"src/**\" \"test/**\" && npm run test:unit && npm run test:integration",
-    "test:unit": "c8 mocha",
-    "test:app": "wdio test/integration/docker-app/wdio.conf.ts",
-    "test:selenium": "wdio test/integration/docker-selenium/wdio.conf.ts",
+    "test:unit": "TSX_TSCONFIG_PATH=./test/tsconfig.json c8 mocha",
+    "test:app": "wdio ./test/integration/docker-app/wdio.conf.ts",
+    "test:selenium": "wdio ./test/integration/docker-selenium/wdio.conf.ts",
     "test:integration": "run-s build:dev test:app test:selenium"
   },
   "keywords": [
@@ -31,6 +45,7 @@
   "author": "Simon Tsvilik",
   "license": "MIT",
   "devDependencies": {
+    "@swc/core": "^1.3.105",
     "@types/chai": "^4.3.11",
     "@types/fs-extra": "^11.0.4",
     "@types/mocha": "^10.0.6",
@@ -51,6 +66,7 @@
     "nyc": "^15.1.0",
     "sinon": "^17.0.1",
     "ts-node": "^10.9.2",
+    "tsx": "^4.7.0",
     "typescript": "^5.3.3",
     "webdriverio": "^8.28.8"
   },

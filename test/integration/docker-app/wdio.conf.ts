@@ -1,15 +1,14 @@
-import { join } from 'path';
-import DockerLauncher, { DockerLauncherConfig } from '@/launcher.js';
 import * as url from 'url';
+import { join } from 'path';
+// TODO: Investigate why path alias won't work here
+import DockerLauncher, { DockerLauncherConfig } from '@/launcher.ts';
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 export const config: DockerLauncherConfig = {
     hostname: '127.0.0.1',
     port: 8080,
-    specs: [
-        '*.spec.ts'
-    ],
+    specs: ['*.spec.ts'],
     runner: 'local',
     capabilities: [{
         browserName: 'chrome',
@@ -20,8 +19,11 @@ export const config: DockerLauncherConfig = {
         }
     }],
     autoCompileOpts: {
+        autoCompile: true,
         tsNodeOpts: {
-            project: '../../../tsconfig.build.json',
+            project: join(__dirname, 'tsconfig.json'),
+            // @ts-expect-error swc property needs to be added to root type definition
+            swc: true,
         },
     },
 
@@ -35,12 +37,10 @@ export const config: DockerLauncherConfig = {
     framework: 'mocha',
     mochaOpts: {
         ui: 'bdd',
-        compilers: ['ts-node/esm'],
     },
     reporters: ['spec'],
-    services: [
-        DockerLauncher
-    ],
+    // Based on types, I should be able to pass [DockerLauncher] here, but it doesn't work
+    services: [[DockerLauncher, {}]],
     dockerLogs: './',
     dockerOptions: {
         image: 'nginx',

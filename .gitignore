@@ -3,7 +3,7 @@
 /node_modules/
 /npm-debug.log
 /.nyc_output/
-/coverage/
+**/coverage/
 /docker-log.txt
 /lib/
 *.tsbuildinfo

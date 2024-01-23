@@ -1,9 +1,9 @@
 import fs from 'fs-extra';
 import logger, { Logger } from '@wdio/logger';
-import Docker, { DockerArgs, DockerForTests } from './utils/docker.js';
 import getFilePath from './utils/getFilePath.js';
+import Docker, { DockerArgs, DockerForTests } from './utils/docker.js';
 
-import { Services, Options } from '@wdio/types';
+import { Services, Options, Capabilities } from '@wdio/types';
 
 const DEFAULT_LOG_FILENAME = 'docker-log.txt';
 const LoggerService = logger('wdio-docker-service');
@@ -23,7 +23,11 @@ class DockerLauncher implements Services.ServiceInstance {
     dockerLogs?: string | null;
     watchMode?: boolean;
 
-    constructor() {
+    constructor(
+        private _options?: unknown,
+        private _capabilities?: Capabilities.RemoteCapability,
+        private _config?: Omit<Options.Testrunner, 'capabilities'>
+    ) {
         this.logToStdout = false;
         this.docker = null;
         this.dockerLogs = null;
