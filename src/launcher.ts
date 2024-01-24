@@ -34,7 +34,7 @@ class DockerLauncher implements Services.ServiceInstance {
         this.dockerLogs = null;
     }
 
-    async onPrepare(config: DockerLauncherConfig) {
+    onPrepare(config: DockerLauncherConfig) {
         this.logToStdout = config.logToStdout;
         this.dockerLogs = config.dockerLogs;
         this.watchMode = !!config.watch;
@@ -71,14 +71,15 @@ class DockerLauncher implements Services.ServiceInstance {
             });
         }
 
-        try {
-            await this.docker.run();
-            if (typeof onDockerReady === 'function') {
-                onDockerReady();
-            }
-        } catch (err) {
-            LoggerService.error(`Failed to run container: ${(err as Record<string, unknown>).message}`);
-        }
+        return this.docker.run()
+            .then(() => {
+                if (typeof onDockerReady === 'function') {
+                    onDockerReady();
+                }
+            })
+            .catch((err) => {
+                LoggerService.error(`Failed to run container: ${(err as Record<string, unknown>).message}`);
+            });
     }
 
     onComplete() {
