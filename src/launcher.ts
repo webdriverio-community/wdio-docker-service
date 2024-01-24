@@ -1,5 +1,6 @@
 import fs from 'fs-extra';
 import logger, { Logger } from '@wdio/logger';
+import { SevereServiceError } from 'webdriverio';
 import getFilePath from './utils/getFilePath.js';
 import Docker, { DockerArgs, DockerForTests } from './utils/docker.js';
 
@@ -38,8 +39,6 @@ class DockerLauncher implements Services.ServiceInstance {
         this.dockerLogs = config.dockerLogs;
         this.watchMode = !!config.watch;
 
-        LoggerService.setLevel(config.logLevel || 'info');
-
         const {
             dockerOptions: {
                 args,
@@ -53,7 +52,7 @@ class DockerLauncher implements Services.ServiceInstance {
         } = config;
 
         if (!image) {
-            return Promise.reject(new Error('dockerOptions.image is a required property'));
+            throw new SevereServiceError('dockerOptions.image is a required property');
         }
 
         this.docker = new Docker(image, {

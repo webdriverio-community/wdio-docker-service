@@ -30,9 +30,9 @@ Instructions on how to install WebdriverIO can be found [here](https://webdriver
 By default, Google Chrome, Firefox and PhantomJS are available when installed on the host system. 
 In order to use the service you need to add `docker` to your service array:
 
-```javascript
+```typescript
 // wdio.conf.ts
-exports.config = {
+export const config: WebdriverIO.Config = {
    // ...
    services: ['docker'],
    // ...
