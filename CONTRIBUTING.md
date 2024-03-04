@@ -26,6 +26,6 @@ In case your editor does not respect `.editorconfig`, here is a summary of rules
 - syntax - ES6/ES2015
 - variable declarations - use `const` and `let`
 
-Please look through existing code to get a general sense of the coding style and practice. Keep your changes consitent with original.
+Please look through existing code to get a general sense of the coding style and practice. Keep your changes consistent with original.
 
 Thank You for deciding to help the community!
