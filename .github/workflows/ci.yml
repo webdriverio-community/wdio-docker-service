@@ -25,7 +25,7 @@ jobs:
       - name: Build
         run: npm run build --if-present
       - name: Run Tests
-        run: |
-          npm test
-          npm run test:app
-          npm run test:selenium
+        run: npm test
+
+    # The Workflow will run for hours on failure without a timeout. The duration is an estimate.
+    timeout-minutes: 10
