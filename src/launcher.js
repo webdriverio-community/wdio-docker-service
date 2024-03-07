@@ -13,7 +13,7 @@ class DockerLauncher {
         this.dockerLogs = null;
     }
 
-    onPrepare(config) {
+    async onPrepare(config) {
         this.logToStdout = config.logToStdout;
         this.dockerLogs = config.dockerLogs;
         this.watchMode = !!config.watch;
@@ -52,15 +52,15 @@ class DockerLauncher {
             });
         }
 
-        return this.docker.run()
-            .then(() => {
-                if (typeof onDockerReady === 'function') {
-                    onDockerReady();
-                }
-            })
-            .catch((err) => {
-                Logger.error(`Failed to run container: ${ err.message }`);
-            });
+        try {
+            await this.docker.run();
+            if (typeof onDockerReady === 'function') {
+                onDockerReady();
+            }
+        }
+        catch(err) {
+            Logger.error(`Failed to run container: ${ err.message }`);
+        }
     }
 
     onComplete() {
@@ -80,14 +80,13 @@ class DockerLauncher {
      * @param logFile
      * @private
      */
-    _redirectLogStream(logFile) {
+    async _redirectLogStream(logFile) {
         // ensure file & directory exists
-        return fs.ensureFile(logFile).then(() => {
-            const logStream = fs.createWriteStream(logFile, { flags: 'w' });
-
-            this.docker.process.stdout.pipe(logStream);
-            this.docker.process.stderr.pipe(logStream);
-        });
+        await fs.ensureFile(logFile);
+        
+        const logStream = fs.createWriteStream(logFile, { flags: 'w' });
+        this.docker.process.stdout.pipe(logStream);
+        this.docker.process.stderr.pipe(logStream);
     }
 }
 
