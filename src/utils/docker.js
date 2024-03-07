@@ -68,7 +68,7 @@ class Docker extends EventEmitter {
     /**
      * @return {Promise}
      */
-    run() {
+    async run() {
         this.logger.log(`Docker command: ${ this.dockerRunCommand.join(SPACE) }`);
         this.dockerEventsListener.connect({
             filter: `image=${ this.image }`
@@ -80,69 +80,56 @@ class Docker extends EventEmitter {
             });
         }
 
-        return this._removeStaleContainer()
-            .then(() => {
-                return this._isImagePresent()
-                    .catch(() => {
-                        this.logger.warn('NOTE: Pulling image for the first time. Please be patient.');
-                        return this._pullImage();
-                    });
-            })
-            .then(() => {
-                this.logger.info(`Launching docker image '${ this.image }'`);
-                return runProcess(this.dockerRunCommand);
-            })
-            .then(process => {
-                this.process = process;
-                this.emit('processCreated');
+        await this._removeStaleContainer();
 
-                if (this.debug) {
-                    this.process.stdout.on('data', (data) => {
-                        this.logger.log(data.toString());
-                    });
+        try {
+            await this._isImagePresent();
+        } catch (_err) {
+            this.logger.warn('NOTE: Pulling image for the first time. Please be patient.');
+            return this._pullImage();
+        }
 
-                    this.process.stderr.on('data', (data) => {
-                        this.logger.error(data.toString());
-                    });
+        this.logger.info(`Launching docker image '${this.image}'`);
+        const process = await runProcess(this.dockerRunCommand);
+        this.process = process;
+        this.emit('processCreated');
 
-                    this.dockerEventsListener.once('container.start', (event) => {
-                        this.logger.info('Container started:', JSON.stringify(event, null, 4));
-                    });
-
-                    this.dockerEventsListener.once('container.stop', (event) => {
-                        this.logger.info('Container stopped:', JSON.stringify(event, null, 4));
-                    });
-                }
-
-                return this._reportWhenDockerIsRunning()
-                    .then(() => {
-                        this.logger.info('Docker container is ready');
-                        return process;
-                    });
-            })
-            .catch((err) => {
-                if (err.code === 'ENOENT') {
-                    return Promise.resolve();
-                }
-
-                throw err;
+        if (this.debug) {
+            this.process.stdout.on('data', (data) => {
+                this.logger.log(data.toString());
             });
+
+            this.process.stderr.on('data', (data) => {
+                this.logger.error(data.toString());
+            });
+
+            this.dockerEventsListener.once('container.start', (event) => {
+                this.logger.info('Container started:', JSON.stringify(event, null, 4));
+            });
+
+            this.dockerEventsListener.once('container.stop', (event) => {
+                this.logger.info('Container stopped:', JSON.stringify(event, null, 4));
+            });
+        }
+
+        await this._reportWhenDockerIsRunning();
+        this.logger.info('Docker container is ready');
+        return process;
     }
 
     /**
      * @return {Promise}
      */
-    stop() {
-        return this._removeStaleContainer()
-            .then(() => {
-                if (this.process) {
-                    this.process.kill();
-                    this.process = null;
-                }
+    async stop() {
+        await this._removeStaleContainer();
 
-                this.logger.info('Docker container has stopped');
-                this.dockerEventsListener.disconnect();
-            });
+        if (this.process) {
+            this.process.kill();
+            this.process = null;
+        }
+
+        this.logger.info('Docker container has stopped');
+        this.dockerEventsListener.disconnect();
     }
 
     /**
@@ -219,20 +206,20 @@ class Docker extends EventEmitter {
 
     /**
      * Removes any stale docker image
-     * @return {Promise}
+     * @return {Promise<void>}
      * @private
      */
-    _removeStaleContainer() {
-        return fs.readFile(this.cidfile)
-            .then((cid) => {
-                this.logger.info('Shutting down running container');
-                return Docker.stopContainer(cid).then(() => Docker.removeContainer(cid));
-            })
-            .catch(() => Promise.resolve())
-            .then(() => {
-                this.logger.info('Cleaning up CID files');
-                return fs.remove(this.cidfile);
-            });
+    async _removeStaleContainer() {
+        try {
+            const cid = await fs.readFile(this.cidfile);
+            this.logger.info('Shutting down running container');
+            await Docker.stopContainer(cid);
+            await Docker.removeContainer(cid);
+        }
+        catch (_err) {} // eslint-disable-line no-empty
+
+        this.logger.info('Cleaning up CID files');
+        await fs.remove(this.cidfile);
     }
 
     /**
