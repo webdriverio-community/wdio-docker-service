@@ -1,4 +1,5 @@
 import fs from 'fs-extra';
+import { SevereServiceError } from 'webdriverio';
 import Docker from './utils/docker';
 import getFilePath from './utils/getFilePath';
 import logger from '@wdio/logger';
@@ -58,7 +59,10 @@ class DockerLauncher {
                 onDockerReady();
             }
         }
-        catch(err) {
+        catch (err) {
+            if (err.code === 'ENOENT' && err.path === 'docker') {
+                throw new SevereServiceError('Docker was not found.');
+            }
             Logger.error(`Failed to run container: ${ err.message }`);
         }
     }

@@ -80,49 +80,41 @@ class Docker extends EventEmitter {
             });
         }
 
+        await this._removeStaleContainer();
+
         try {
-            await this._removeStaleContainer();
-
-            try {
-                await this._isImagePresent();
-            } catch (_err) {
-                this.logger.warn('NOTE: Pulling image for the first time. Please be patient.');
-                return this._pullImage();
-            }
-
-            this.logger.info(`Launching docker image '${this.image}'`);
-            const process = await runProcess(this.dockerRunCommand);
-            this.process = process;
-            this.emit('processCreated');
-
-            if (this.debug) {
-                this.process.stdout.on('data', (data) => {
-                    this.logger.log(data.toString());
-                });
-
-                this.process.stderr.on('data', (data) => {
-                    this.logger.error(data.toString());
-                });
-
-                this.dockerEventsListener.once('container.start', (event) => {
-                    this.logger.info('Container started:', JSON.stringify(event, null, 4));
-                });
-
-                this.dockerEventsListener.once('container.stop', (event) => {
-                    this.logger.info('Container stopped:', JSON.stringify(event, null, 4));
-                });
-            }
-
-            await this._reportWhenDockerIsRunning();
-            this.logger.info('Docker container is ready');
-            return process;
-        } catch (err) {
-            if (err.code === 'ENOENT') {
-                return Promise.resolve();
-            }
-
-            throw err;
+            await this._isImagePresent();
+        } catch (_err) {
+            this.logger.warn('NOTE: Pulling image for the first time. Please be patient.');
+            return this._pullImage();
         }
+
+        this.logger.info(`Launching docker image '${this.image}'`);
+        const process = await runProcess(this.dockerRunCommand);
+        this.process = process;
+        this.emit('processCreated');
+
+        if (this.debug) {
+            this.process.stdout.on('data', (data) => {
+                this.logger.log(data.toString());
+            });
+
+            this.process.stderr.on('data', (data) => {
+                this.logger.error(data.toString());
+            });
+
+            this.dockerEventsListener.once('container.start', (event) => {
+                this.logger.info('Container started:', JSON.stringify(event, null, 4));
+            });
+
+            this.dockerEventsListener.once('container.stop', (event) => {
+                this.logger.info('Container stopped:', JSON.stringify(event, null, 4));
+            });
+        }
+
+        await this._reportWhenDockerIsRunning();
+        this.logger.info('Docker container is ready');
+        return process;
     }
 
     /**
