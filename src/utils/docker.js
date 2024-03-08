@@ -1,11 +1,12 @@
 import deepMerge from './deepMerge';
 import fs from 'fs-extra';
-import path from 'path';
+import * as path from 'path';
 import Ping from './ping';
 import { runCommand, runProcess } from './childProcess';
 import { EventEmitter } from 'events';
 import serializeOptions from './optionsSerializer';
 import DockerEventsListener from './dockerEventsListener';
+import { ChildProcess } from 'child_process';
 
 const SPACE = ' ';
 const INSPECT_DOCKER_INTERVAL = 500;
@@ -20,12 +21,13 @@ const DEFAULT_OPTIONS = {
 class Docker extends EventEmitter {
     /**
      * @param {String} image Docker image/tag name
-     * @param {Object} [options] Docker run options
-     * @param {String|Object} [healthCheck] Url that verifies that service is running
-     * @param {String[]} [command] docker command that follows image/tag name
-     * @param {String} [args] docker args that follow image/tag name
+     * @param {Object} options Docker run options
+     * @param {Object} [options.options] Docker run options
+     * @param {String|Object} [options.healthCheck] Url that verifies that service is running
+     * @param {String} [options.command] docker command that follows image/tag name
+     * @param {String} [options.args] docker args that follow image/tag name
+     * @param {Boolean} [options.debug]
      * @param {Object} logger Logger or console
-     * @param {Boolean} [debug]
      */
     constructor(image, { options = {}, healthCheck = {}, command, args, debug = false } = {}, logger = console) {
         super();
@@ -66,7 +68,7 @@ class Docker extends EventEmitter {
     }
 
     /**
-     * @return {Promise}
+     * @return {Promise<ChildProcess>}
      */
     async run() {
         this.logger.log(`Docker command: ${ this.dockerRunCommand.join(SPACE) }`);
@@ -118,7 +120,7 @@ class Docker extends EventEmitter {
     }
 
     /**
-     * @return {Promise}
+     * @return {Promise<void>}
      */
     async stop() {
         await this._removeStaleContainer();
@@ -134,7 +136,7 @@ class Docker extends EventEmitter {
 
     /**
      * Polls for availability of application running in a docker
-     * @return {Promise<any>}
+     * @return {Promise<void>}
      * @private
      */
     _reportWhenDockerIsRunning() {
@@ -149,6 +151,7 @@ class Docker extends EventEmitter {
             return Promise.resolve();
         }
 
+        /** @type {Promise<void>} */
         const waitForDockerHealthCheck = new Promise((resolve) => {
             this.dockerEventsListener.on('container.health_status', (event) => {
                 if (event.args === 'healthy') {
@@ -157,23 +160,26 @@ class Docker extends EventEmitter {
             });
         });
 
+        /** @type {Promise<void>} */
         const waitForHealthCheckPoll = Docker.delay(startDelay)
             .then(() => new Promise((resolve, reject) => {
                 let attempts = 0;
-                let pollstatus = null;
+
+                /** @type {NodeJS.Timeout | undefined} */
+                let pollstatus;
 
                 const poll = () => {
                     Ping(url)
                         .then(() => {
                             resolve();
                             clearTimeout(pollstatus);
-                            pollstatus = null;
+                            pollstatus = undefined;
                         })
                         .catch((err) => {
                             attempts++;
                             if (attempts >= maxRetries) {
                                 clearTimeout(pollstatus);
-                                pollstatus = null;
+                                pollstatus = undefined;
                                 reject(err);
                                 return;
                             }
@@ -189,7 +195,7 @@ class Docker extends EventEmitter {
     }
 
     /**
-     * @return {Promise}
+     * @return {Promise<ChildProcess>}
      * @private
      */
     _isImagePresent() {
@@ -197,7 +203,7 @@ class Docker extends EventEmitter {
     }
 
     /**
-     * @return {Promise}
+     * @return {Promise<ChildProcess>}
      * @private
      */
     _pullImage() {
@@ -211,7 +217,7 @@ class Docker extends EventEmitter {
      */
     async _removeStaleContainer() {
         try {
-            const cid = await fs.readFile(this.cidfile);
+            const cid = (await fs.readFile(this.cidfile)).toString();
             this.logger.info('Shutting down running container');
             await Docker.stopContainer(cid);
             await Docker.removeContainer(cid);
@@ -225,7 +231,7 @@ class Docker extends EventEmitter {
     /**
      * @static
      * @param {Number} timeMs
-     * @return {Promise}
+     * @return {Promise<void>}
      */
     static delay(timeMs) {
         return new Promise(resolve => {
@@ -236,7 +242,7 @@ class Docker extends EventEmitter {
     /**
      * @static
      * @param {String} cid Container id
-     * @return {Promise}
+     * @return {Promise<ChildProcess>}
      */
     static stopContainer(cid) {
         return runCommand(['docker', 'stop', cid]);
@@ -245,7 +251,7 @@ class Docker extends EventEmitter {
     /**
      * @static
      * @param {String} cid Container id
-     * @return {Promise}
+     * @return {Promise<ChildProcess>}
      */
     static removeContainer(cid) {
         return runCommand(['docker', 'rm', cid]);

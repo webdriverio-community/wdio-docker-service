@@ -14,6 +14,9 @@ class DockerLauncher {
         this.dockerLogs = null;
     }
 
+    /**
+     * @returns {Promise<void>}
+     */
     async onPrepare(config) {
         this.logToStdout = config.logToStdout;
         this.dockerLogs = config.dockerLogs;
@@ -34,7 +37,7 @@ class DockerLauncher {
         } = config;
 
         if (!image) {
-            return Promise.reject(new Error('dockerOptions.image is a required property'));
+            throw new Error('dockerOptions.image is a required property');
         }
 
         this.docker = new Docker(image, {
@@ -67,10 +70,13 @@ class DockerLauncher {
         }
     }
 
-    onComplete() {
+    /**
+     * @returns {Promise<void>}
+     */
+    async onComplete() {
         // do not stop docker if in watch mode
         if (!this.watchMode && this.docker) {
-            return this.docker.stop();
+            await this.docker.stop();
         }
     }
 

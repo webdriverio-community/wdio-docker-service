@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        // Do not emit compiler output
+        "noEmit": true,
+
+        // Report errors in JavaScript files
+        "allowJs": true,
+        "checkJs": true,
+
+        // Do not report problems in .d.ts files (in node_modules/)
+        "skipLibCheck": true,
+
+        // Importing Node.js modules like 'events'.
+        "esModuleInterop": true,
+
+        // Check Types
+        "strict": false, // TODO
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true
+    },
+
+    "include": [
+        "src/**/*",
+        "tests/**/*",
+    ]
+}

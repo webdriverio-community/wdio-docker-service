@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import path from 'path';
+import * as path from 'path';
 import { stub, spy } from 'sinon';
 import Docker from '../../../src/utils/docker';
 import fs from 'fs-extra';

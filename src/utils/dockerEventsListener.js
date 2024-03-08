@@ -1,8 +1,14 @@
 import EventEmitter from 'events';
 import { fork } from 'child_process';
-import path from 'path';
+import * as path from 'path';
 
 const DOCKER_EVENTS_MODULE = path.resolve(__dirname, '..', 'modules/dockerEvents');
+
+/**
+ * @typedef {Object} LoggerLike
+ * @property {(...args: any[]) => void} warn
+ * @property {(...args: any[]) => void} error
+ */
 
 /**
  * @class DockerEventsListener
@@ -11,7 +17,7 @@ const DOCKER_EVENTS_MODULE = path.resolve(__dirname, '..', 'modules/dockerEvents
 class DockerEventsListener extends EventEmitter {
     /**
      * @constructor
-     * @param {Logger} [logger]
+     * @param {LoggerLike} [logger]
      */
     constructor(logger = console) {
         super();
@@ -59,6 +65,9 @@ class DockerEventsListener extends EventEmitter {
         this.emit(message.type, message);
     }
 
+    /**
+     * @param {Error} err 
+     */
     _onError(err) {
         this.logger.error(err);
         this.disconnect();
@@ -66,6 +75,3 @@ class DockerEventsListener extends EventEmitter {
 }
 
 export default DockerEventsListener;
-
-
-

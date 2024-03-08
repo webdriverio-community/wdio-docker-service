@@ -1,4 +1,4 @@
-import path from 'path';
+import * as path from 'path';
 
 const FILE_EXTENSION_REGEX = /\.[0-9a-z]+$/i;
 

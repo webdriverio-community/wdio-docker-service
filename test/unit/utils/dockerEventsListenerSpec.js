@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { stub, spy } from 'sinon';
-import path from 'path';
+import * as path from 'path';
 import ChildProcess from 'child_process';
 import DockerEventsListener from '../../../src/utils/dockerEventsListener';
 import logger from '@wdio/logger';

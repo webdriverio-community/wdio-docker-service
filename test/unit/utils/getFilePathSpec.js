@@ -1,5 +1,5 @@
 import getFilePath from '../../../src/utils/getFilePath';
-import path from 'path';
+import * as path from 'path';
 import { expect } from 'chai';
 
 describe('#getFilePath', function () {

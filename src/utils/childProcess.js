@@ -3,7 +3,7 @@ import { spawn } from 'child_process';
 /**
  * Runs continuous shell process
  * @param {String[]} cmd Shell command
- * @return {Promise<process>}
+ * @return {Promise<import('child_process').ChildProcess>}
  */
 export function runProcess(cmd) {
     return new Promise((resolve, reject) => {
@@ -23,7 +23,7 @@ export function runProcess(cmd) {
 /**
  * Runs shell command
  * @param {String[]} cmd Shell command
- * @return {Promise<process>}
+ * @return {Promise<import('child_process').ChildProcess>}
  */
 export function runCommand(cmd) {
     return new Promise((resolve, reject) => {

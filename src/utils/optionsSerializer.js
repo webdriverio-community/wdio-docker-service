@@ -5,7 +5,7 @@ const RX_IS_ESCAPED = /^(["'])([^"']+)(["'])$/;
 
 /**
  * @param {Object} opt Options to serialize
- * @return {Array}
+ * @return {Array<string>}
  */
 
 export function serializeOptions(opt) {
@@ -25,14 +25,14 @@ export function serializeOptions(opt) {
 
 /**
  * @param {String} key
- * @param {*} value
- * @return {Array}
+ * @param {boolean | string | Array<any>} value
+ * @return {Array<string>}
  */
 export function serializeOption(key, value) {
     const prefix = key.length > 1 ? '--' : '-';
 
-    if (typeof value === 'boolean' && value) {
-        return [`${ prefix }${ key }`];
+    if (typeof value === 'boolean') {
+        return value ? [`${ prefix }${ key }`] : [];
     }
 
     if (typeof value === 'string') {
@@ -42,6 +42,8 @@ export function serializeOption(key, value) {
     if (Array.isArray(value)) {
         return value.reduce((acc, item) => acc.concat([`${ prefix }${ key }`, `${ item }`]), []);
     }
+
+    return [];
 }
 
 /**
