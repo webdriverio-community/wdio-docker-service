@@ -404,14 +404,15 @@ class Docker extends EventEmitter {
      */
     async _removeStaleContainer() {
         try {
+            this.logger.info('Cleaning up stale docker files...');
             const cid = await fs.readFile(this.cidfile);
-            this.logger.info('Shutting down running container');
+            this.logger.info('1. Shutting down running container');
             await Docker.stopContainer(cid.toString());
             await Docker.removeContainer(cid.toString());
         }
         catch (_err) {} // eslint-disable-line no-empty
 
-        this.logger.info('Cleaning up CID files');
+        this.logger.info('2. Cleaning up CID files');
         await fs.remove(this.cidfile);
     }
 

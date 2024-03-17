@@ -108,19 +108,20 @@ const DockerEvents = {
             status.indexOf(':') !== -1
                 ? status.slice(status.indexOf(':') + 1).trim()
                 : '';
-
-        process.send?.({
-            args,
-            image: from,
-            timeStamp: new Date(timeNano / NANOSECONDS),
-            type: eventType,
-            status,
-            detail: {
-                id,
-                scope,
-                actor: Actor,
-            },
-        });
+        if (process.connected) {
+            process.send?.({
+                args,
+                image: from,
+                timeStamp: new Date(timeNano / NANOSECONDS),
+                type: eventType,
+                status,
+                detail: {
+                    id,
+                    scope,
+                    actor: Actor,
+                },
+            });
+        }
     },
 
     _tryParse(text: string) {

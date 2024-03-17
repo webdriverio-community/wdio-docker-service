@@ -1,10 +1,11 @@
 import fs from 'fs-extra';
-import logger, { Logger } from '@wdio/logger';
+import logger from '@wdio/logger';
 import { SevereServiceError } from 'webdriverio';
 import getFilePath from './utils/getFilePath.js';
 import Docker, { DockerArgs, DockerForTests } from './utils/docker.js';
 
-import { Services, Options, Capabilities } from '@wdio/types';
+import type { Services, Options, Capabilities } from '@wdio/types';
+import type { WebDriverLogTypes } from '@wdio/types/build/Options.js';
 
 const DEFAULT_LOG_FILENAME = 'docker-log.txt';
 const LoggerService = logger('wdio-docker-service');
@@ -14,7 +15,7 @@ export interface DockerLauncherConfig extends Options.Testrunner {
     logToStdout?: boolean;
     dockerLogs?: string | null;
     watch?: boolean;
-    logLevel?: Logger['setLevel']['arguments'][0];
+    logLevel?: WebDriverLogTypes;
     onDockerReady?: () => void;
 }
 
@@ -55,12 +56,16 @@ class DockerLauncher implements Services.ServiceInstance {
             throw new SevereServiceError('dockerOptions.image is a required property');
         }
 
+        if (logLevel) {
+            LoggerService.setLevel(logLevel);
+        }
+
         this.docker = new Docker(image, {
             args,
             command,
             healthCheck,
             options,
-            debug: logLevel && logLevel === 'debug'
+            debug: !!logLevel && logLevel === 'debug'
         }, LoggerService);
 
         if (typeof this.dockerLogs === 'string') {
@@ -73,7 +78,6 @@ class DockerLauncher implements Services.ServiceInstance {
 
         return this.docker.run()
             .then(() => {
-                console.log(typeof onDockerReady);
                 if (typeof onDockerReady === 'function') {
                     onDockerReady();
                 }
@@ -92,7 +96,7 @@ class DockerLauncher implements Services.ServiceInstance {
     }
 
     afterSession() {
-        if (this.docker) {
+        if (this.docker?.process?.connected) {
             this.docker.stop();
         }
     }

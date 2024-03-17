@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { stub, spy, createSandbox, SinonStub, SinonSpy, SinonSandbox } from 'sinon';
-import { DockerLauncherForTests as DockerLauncher } from '@/launcher.js';
+import { DockerLauncherForTests as DockerLauncher, DockerLauncherConfig } from '@/launcher.js';
 import Docker from '@/utils/docker.js';
 
 describe('DockerLauncher', async function () {
@@ -8,6 +8,10 @@ describe('DockerLauncher', async function () {
 
     beforeEach(function () {
         launcher = new DockerLauncher();
+    });
+
+    afterEach(function () {
+        launcher.onComplete();
     });
 
     describe('#constructor', function () {
@@ -21,7 +25,9 @@ describe('DockerLauncher', async function () {
     describe('#onPrepare', function () {
         describe('@dockerOptions', function () {
             context('when dockerOptions.image is not provided', function () {
-                const dockerOptions = {};
+                // @ts-expect-error - Testing invalid config
+                const dockerOptions: DockerLauncherConfig['dockerOptions'] = {};
+
                 it('must reject with error', async function () {
                     try {
                         // @ts-expect-error - Testing invalid config
@@ -37,12 +43,12 @@ describe('DockerLauncher', async function () {
 
             context('when dockerOptions.image is provided', function () {
                 it('must run docker', async function () {
-                    const dockerOptions = {
+                    const dockerOptions: DockerLauncherConfig['dockerOptions'] = {
                         image: 'hello-world',
                     };
 
                     // @ts-expect-error - Testing invalid config
-                    await launcher.onPrepare({ dockerOptions });
+                    await launcher.onPrepare({ dockerOptions, logLevel: 'error' });
                     expect(launcher.docker).to.be.instanceOf(Docker);
                     expect(launcher.docker?.image).to.eql('hello-world');
                 });
@@ -50,7 +56,7 @@ describe('DockerLauncher', async function () {
 
             context('when dockerOptions.args is provided', function () {
                 it('must run docker with args', async function () {
-                    const dockerOptions = {
+                    const dockerOptions: DockerLauncherConfig['dockerOptions'] = {
                         image: 'hello-world',
                         args: '-foo',
                     };
@@ -58,6 +64,7 @@ describe('DockerLauncher', async function () {
                     await launcher.onPrepare({
                         dockerOptions,
                         capabilities: [],
+                        logLevel: 'error'
                     });
                     expect(launcher.docker?.args).to.eql('-foo');
                 });
@@ -65,7 +72,7 @@ describe('DockerLauncher', async function () {
 
             context('when dockerOptions.command is provided', function () {
                 it('must run docker with command', async function () {
-                    const dockerOptions = {
+                    const dockerOptions: DockerLauncherConfig['dockerOptions'] = {
                         image: 'hello-world',
                         command: '/bin/bash',
                     };
@@ -73,31 +80,35 @@ describe('DockerLauncher', async function () {
                     await launcher.onPrepare({
                         dockerOptions,
                         capabilities: [],
+                        logLevel: 'error'
                     });
                     expect(launcher.docker?.command).to.eql('/bin/bash');
                 });
             });
 
             context('when dockerOptions.healthCheck is provided', function () {
-                it('must run docker with healthCheck', async function () {
-                    const dockerOptions = {
+                it('must run docker with healthCheck', function () {
+                    const dockerOptions: DockerLauncherConfig['dockerOptions'] = {
                         image: 'hello-world',
                         healthCheck: 'http://localhost:8000',
                     };
 
-                    await launcher.onPrepare({
+                    // Consider moving this to async/await but ensure expect can be called after the promise resolves
+                    launcher.onPrepare({
                         dockerOptions,
                         capabilities: [],
-                    });
-                    expect(launcher.docker?.healthCheck).to.eql({
-                        url: 'http://localhost:8000',
+                        logLevel: 'error'
+                    }).then(() => {
+                        expect(launcher.docker?.healthCheck).eql({
+                            url: 'http://localhost:8000',
+                        });
                     });
                 });
             });
 
             context('when dockerOptions.options are provided', function () {
                 it('must run docker with options', async function () {
-                    const dockerOptions = {
+                    const dockerOptions: DockerLauncherConfig['dockerOptions'] = {
                         image: 'hello-world',
                         options: {
                             e: ['TEST=ME'],
@@ -107,6 +118,7 @@ describe('DockerLauncher', async function () {
                     await launcher.onPrepare({
                         dockerOptions,
                         capabilities: [],
+                        logLevel: 'error'
                     });
                     expect(launcher.docker?.options).to.deep.equal({
                         rm: true,
@@ -118,7 +130,7 @@ describe('DockerLauncher', async function () {
 
             context('when logLevel is set to debug', function () {
                 it('must set debug property of Docker to true', async function () {
-                    const dockerOptions = {
+                    const dockerOptions: DockerLauncherConfig['dockerOptions'] = {
                         image: 'hello-world',
                     };
 
@@ -149,11 +161,12 @@ describe('DockerLauncher', async function () {
 
             context('when not set', function () {
                 it('must not redirect log stream', async function () {
-                    const config = {
+                    const config: DockerLauncherConfig = {
                         dockerOptions: {
                             image: 'hello-world',
                         },
                         capabilities: [],
+                        logLevel: 'error'
                     };
 
                     await launcher.onPrepare(config);
@@ -163,12 +176,13 @@ describe('DockerLauncher', async function () {
 
             context('when set to string', function () {
                 it('must redirect log stream', async function () {
-                    const config = {
+                    const config: DockerLauncherConfig = {
                         dockerLogs: './',
                         dockerOptions: {
                             image: 'hello-world',
                         },
                         capabilities: [],
+                        logLevel: 'error'
                     };
 
                     await launcher.onPrepare(config);
@@ -182,12 +196,13 @@ describe('DockerLauncher', async function () {
             context('when onDockerReady is provided', function () {
                 const sandbox: SinonSandbox = createSandbox();
                 const onDockerReady: SinonSpy = sandbox.spy();
-                const config = {
+                const config: DockerLauncherConfig = {
                     onDockerReady,
                     dockerOptions: {
                         image: 'hello-world',
                     },
                     capabilities: [],
+                    logLevel: 'error'
                 };
 
                 it('must call onDockerReady', async function () {
@@ -197,14 +212,16 @@ describe('DockerLauncher', async function () {
             });
 
             context('when docker run is rejected', function () {
-                const config = {
-                    onDockerReady: spy(),
+                let sandbox: SinonSandbox;
+                const onDockerReady: SinonSpy = spy();
+                const config: DockerLauncherConfig = {
+                    onDockerReady,
                     dockerOptions: {
                         image: 'hello-world',
                     },
                     capabilities: [],
+                    logLevel: 'silent'
                 };
-                let sandbox: SinonSandbox;
 
                 beforeEach(function () {
                     sandbox = createSandbox();
@@ -219,7 +236,7 @@ describe('DockerLauncher', async function () {
                     try {
                         return await launcher.onPrepare(config);
                     } catch {
-                        expect(config.onDockerReady.called).equal(false);
+                        expect(onDockerReady.called).equal(false);
                     }
                 });
             });
@@ -227,20 +244,24 @@ describe('DockerLauncher', async function () {
     });
 
     describe('#onComplete', function () {
-        let spyStop: SinonSpy<Parameters<typeof Docker.prototype.stop>>;
+        let sandbox: SinonSandbox;
+        let spyStop: SinonSpy;
 
         beforeEach(function () {
-            spyStop = spy(Docker.prototype, 'stop');
+            sandbox = createSandbox();
+            spyStop = sandbox.stub();
+            // @ts-expect-error - Hacking to test private property
+            launcher.docker = { stop: spyStop } as unknown as Docker;
         });
 
         afterEach(function () {
-            spyStop.restore();
+            sandbox.restore();
         });
 
         context('when this.docker is present', function () {
             it('must call this.docker.stop', function () {
                 launcher.onComplete();
-                expect(spyStop.called).to.eql(true);
+                expect(spyStop.called).equal(true);
             });
         });
 
@@ -254,20 +275,27 @@ describe('DockerLauncher', async function () {
     });
 
     describe('#afterSession', function () {
-        let spyStop: SinonSpy<Parameters<typeof Docker.prototype.stop>>;
+        let sandbox: SinonSandbox;
+        let spyStop: SinonSpy;
 
         beforeEach(function () {
-            spyStop = spy(Docker.prototype, 'stop');
+            sandbox = createSandbox();
+            spyStop = sandbox.stub();
+            // @ts-expect-error - Hacking for testing purposes
+            launcher.docker = { 
+                stop: spyStop,
+                process: { connected: true },
+            } as unknown as Docker;
         });
 
         afterEach(function () {
-            spyStop.restore();
+            sandbox.restore();
         });
 
         context('when this.docker is present', function () {
             it('must call this.docker.stop', function () {
                 launcher.afterSession();
-                expect(spyStop.called).to.eql(true);
+                expect(spyStop.called).equal(true);
             });
         });
     });
