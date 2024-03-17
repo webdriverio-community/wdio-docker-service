@@ -30,7 +30,7 @@
     "build": "tsc",
     "build:dev": "rm -rf ./lib && tsc --sourceMap",
     "test": "eslint -c .eslintrc.cjs \"src/**\" \"test/**\" && npm run test:unit && npm run test:integration",
-    "test:unit": "TSX_TSCONFIG_PATH=./test/tsconfig.json c8 mocha",
+    "test:unit": "TSX_TSCONFIG_PATH=./test/tsconfig.json c8 mocha -b",
     "test:app": "wdio ./test/integration/docker-app/wdio.conf.ts",
     "test:selenium": "wdio ./test/integration/docker-selenium/wdio.conf.ts",
     "test:integration": "run-s build:dev test:app test:selenium"

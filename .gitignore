@@ -7,3 +7,4 @@
 /docker-log.txt
 /lib/
 *.tsbuildinfo
+*.cid

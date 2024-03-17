@@ -73,12 +73,14 @@ class DockerLauncher implements Services.ServiceInstance {
 
         return this.docker.run()
             .then(() => {
+                console.log(typeof onDockerReady);
                 if (typeof onDockerReady === 'function') {
                     onDockerReady();
                 }
             })
             .catch((err) => {
                 LoggerService.error(`Failed to run container: ${(err as Record<string, unknown>).message}`);
+                this.docker?.stop();
             });
     }
 

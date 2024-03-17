@@ -3,4 +3,7 @@ module.exports = {
   extensions: ["ts"],
   spec: "test/unit/**/*",
   require: ["tsx"],
+  import: ["tsx/esm"],
+  exit: true,
+  timeout: 10000,
 };

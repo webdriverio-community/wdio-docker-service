@@ -7,7 +7,7 @@ import type { Logger } from '@wdio/logger';
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
-const DOCKER_EVENTS_MODULE = path.resolve(__dirname, '..', 'modules/dockerEvents');
+const DOCKER_EVENTS_MODULE = path.resolve(__dirname, '..', 'modules/dockerEvents.ts');
 
 class DockerEventsListener extends EventEmitter {
     logger: Logger | Console;

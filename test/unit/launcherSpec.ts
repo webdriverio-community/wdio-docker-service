@@ -1,19 +1,13 @@
 import { expect } from 'chai';
-import { stub, spy, SinonStub, SinonSpy } from 'sinon';
+import { stub, spy, createSandbox, SinonStub, SinonSpy, SinonSandbox } from 'sinon';
 import { DockerLauncherForTests as DockerLauncher } from '@/launcher.js';
 import Docker from '@/utils/docker.js';
 
 describe('DockerLauncher', async function () {
     let launcher: typeof DockerLauncher.prototype;
-    let stubRun: SinonStub<Parameters<typeof Docker.prototype.run>>;
 
     beforeEach(function () {
         launcher = new DockerLauncher();
-        stubRun = stub(Docker.prototype, 'run').resolves();
-    });
-
-    afterEach(function () {
-        stubRun.restore();
     });
 
     describe('#constructor', function () {
@@ -44,20 +38,20 @@ describe('DockerLauncher', async function () {
             context('when dockerOptions.image is provided', function () {
                 it('must run docker', async function () {
                     const dockerOptions = {
-                        image: 'my-image',
+                        image: 'hello-world',
                     };
 
                     // @ts-expect-error - Testing invalid config
                     await launcher.onPrepare({ dockerOptions });
                     expect(launcher.docker).to.be.instanceOf(Docker);
-                    expect(launcher.docker?.image).to.eql('my-image');
+                    expect(launcher.docker?.image).to.eql('hello-world');
                 });
             });
 
             context('when dockerOptions.args is provided', function () {
                 it('must run docker with args', async function () {
                     const dockerOptions = {
-                        image: 'my-image',
+                        image: 'hello-world',
                         args: '-foo',
                     };
 
@@ -72,7 +66,7 @@ describe('DockerLauncher', async function () {
             context('when dockerOptions.command is provided', function () {
                 it('must run docker with command', async function () {
                     const dockerOptions = {
-                        image: 'my-image',
+                        image: 'hello-world',
                         command: '/bin/bash',
                     };
 
@@ -87,7 +81,7 @@ describe('DockerLauncher', async function () {
             context('when dockerOptions.healthCheck is provided', function () {
                 it('must run docker with healthCheck', async function () {
                     const dockerOptions = {
-                        image: 'my-image',
+                        image: 'hello-world',
                         healthCheck: 'http://localhost:8000',
                     };
 
@@ -104,7 +98,7 @@ describe('DockerLauncher', async function () {
             context('when dockerOptions.options are provided', function () {
                 it('must run docker with options', async function () {
                     const dockerOptions = {
-                        image: 'my-image',
+                        image: 'hello-world',
                         options: {
                             e: ['TEST=ME'],
                         },
@@ -125,7 +119,7 @@ describe('DockerLauncher', async function () {
             context('when logLevel is set to debug', function () {
                 it('must set debug property of Docker to true', async function () {
                     const dockerOptions = {
-                        image: 'my-image',
+                        image: 'hello-world',
                     };
 
                     await launcher.onPrepare({
@@ -157,7 +151,7 @@ describe('DockerLauncher', async function () {
                 it('must not redirect log stream', async function () {
                     const config = {
                         dockerOptions: {
-                            image: 'my-image',
+                            image: 'hello-world',
                         },
                         capabilities: [],
                     };
@@ -172,7 +166,7 @@ describe('DockerLauncher', async function () {
                     const config = {
                         dockerLogs: './',
                         dockerOptions: {
-                            image: 'my-image',
+                            image: 'hello-world',
                         },
                         capabilities: [],
                     };
@@ -186,17 +180,19 @@ describe('DockerLauncher', async function () {
 
         describe('@onDockerReady', function () {
             context('when onDockerReady is provided', function () {
+                const sandbox: SinonSandbox = createSandbox();
+                const onDockerReady: SinonSpy = sandbox.spy();
                 const config = {
-                    onDockerReady: spy(),
+                    onDockerReady,
                     dockerOptions: {
-                        image: 'my-image',
+                        image: 'hello-world',
                     },
                     capabilities: [],
                 };
 
                 it('must call onDockerReady', async function () {
                     await launcher.onPrepare(config);
-                    expect(config.onDockerReady.called).to.eql(true);
+                    expect(onDockerReady.called).eq(true);
                 });
             });
 
@@ -204,22 +200,26 @@ describe('DockerLauncher', async function () {
                 const config = {
                     onDockerReady: spy(),
                     dockerOptions: {
-                        image: 'my-image',
+                        image: 'hello-world',
                     },
                     capabilities: [],
                 };
-                let stubRun: SinonStub<Parameters<typeof Docker.prototype.run>>;
+                let sandbox: SinonSandbox;
 
                 beforeEach(function () {
-                    stubRun.restore();
-                    stubRun = stub(Docker.prototype, 'run').rejects(new Error('Fail'));
+                    sandbox = createSandbox();
+                    sandbox.stub(Docker.prototype, 'run').rejects(new Error('Fail'));
+                });
+
+                afterEach(() => {
+                    sandbox.restore();        
                 });
 
                 it('must NOT call onDockerReady', async function () {
                     try {
                         return await launcher.onPrepare(config);
                     } catch {
-                        expect(config.onDockerReady.called).to.eql(false);
+                        expect(config.onDockerReady.called).equal(false);
                     }
                 });
             });
