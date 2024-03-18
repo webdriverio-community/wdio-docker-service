@@ -1,45 +1,41 @@
 import { expect } from 'chai';
-import { stub, spy, SinonStub, SinonSpy } from 'sinon';
+import { stub, spy, createSandbox, SinonStub, SinonSpy, SinonSandbox } from 'sinon';
 import ChildProcess from 'child_process';
 import DockerEvents from '@/modules/dockerEvents.js';
 import MockChildProcess from '@test/mocks/MockChildProcess.js';
 import MockRawDockerEvent from '@test/mocks/MockRawDockerEvent.json';
 
 describe('DockerEvents module', function () {
+    let sandbox: SinonSandbox;
     let stubbedExec: SinonStub<Parameters<typeof ChildProcess['exec']>>;
 
     beforeEach(function () {
-        stub(ChildProcess, 'exec').callsFake(cmd => {
+        sandbox = createSandbox();
+        stubbedExec = sandbox.stub(ChildProcess, 'exec').callsFake(cmd => {
             return new MockChildProcess(cmd);
         });
-        
-        Reflect.defineProperty(global.process, 'send', { value: spy() });
-        Reflect.defineProperty(global.process, 'connected', { value: true });
     });
 
     afterEach(function () {
-        stubbedExec.restore();
-        Reflect.deleteProperty(global.process, 'send');
-        Reflect.deleteProperty(global.process, 'connected');
+        sandbox.restore();
     });
 
     describe('#init', function () {
         const cmd = 'docker events --format "{{json .}}"';
 
         context('when calling w/o options', function () {
-            beforeEach(function () {
-                DockerEvents.init();
-            });
-
             it('must start sub-process with default command', function () {
-                expect(stubbedExec.calledWith(cmd)).to.be.true;
+                DockerEvents.init().then(() => {
+                    expect(stubbedExec.calledWith(cmd)).equal(true);
+                });
             });
         });
 
         context('when calling with options', function () {
             it('must start sub-process with optional flags', function () {
-                DockerEvents.init({ foo: 'bar' });
-                expect(stubbedExec.calledWith(`${ cmd } --foo bar`)).to.be.true;
+                DockerEvents.init({ foo: 'bar' }).then(() => {
+                    expect(stubbedExec.calledWith(`${ cmd } --foo bar`)).to.be.true;
+                });
             });
         });
 
@@ -100,9 +96,14 @@ describe('DockerEvents module', function () {
 
     describe('#_onDisconnect', function () {
         let killSpy: SinonSpy<Parameters<NonNullable<typeof DockerEvents['process']>['kill']>>;
+        let sandbox: SinonSandbox;
 
         beforeEach(function () {
-            killSpy = spy((DockerEvents.process!).kill);
+            sandbox = createSandbox();
+            killSpy = sandbox.stub();
+            DockerEvents.process = {
+                kill: killSpy
+            } as unknown as typeof DockerEvents['process'];
         });
 
         it('must kill sub-process', function () {
@@ -114,31 +115,61 @@ describe('DockerEvents module', function () {
 
     describe('#_onExit', function () {
         let sendMock: SinonSpy;
+        let sandbox: SinonSandbox;
+
+        beforeEach(() => {
+            sandbox = createSandbox();
+            sendMock = sandbox.stub();
+            global.process = {
+                ...global.process,
+                send: sendMock,
+                connected: true,
+            } as unknown as typeof global.process;
+        });
+
+        afterEach(() => {
+            global.process.send = undefined;
+            sandbox.restore();
+        });
+
         context('when called with Error code', function () {
             it('must send error to parent process', function () {
-                sendMock = spy(global.process, 'send');
-                sendMock.resetHistory();
                 DockerEvents._onExit(125, 'foo', '');
                 expect(sendMock.calledWith({
                     type: 'error',
                     message: 'Error executing sub-child: foo'
-                })).to.be.true;
+                })).equal(true);
             });
         });
 
         context('when process exits with code 0', function () {
             it('must do nothing', function () {
-                sendMock = spy(global.process, 'send');
-                sendMock.resetHistory();
                 DockerEvents._onExit(0, '', '');
-                expect(sendMock.called).to.be.false;
+                expect(sendMock.called).equal(false);
             });
         });
     });
 
     describe('#_parseEventData', function () {
+        let sendMock: SinonSpy;
+        let sandbox: SinonSandbox;
+
+        beforeEach(() => {
+            sandbox = createSandbox();
+            sendMock = sandbox.stub();
+            global.process = {
+                ...global.process,
+                send: sendMock,
+                connected: true,
+            } as unknown as typeof global.process;
+        });
+
+        afterEach(() => {
+            global.process.send = undefined;
+            sandbox.restore();
+        });
+
         it('must extract data from JSON and send data to parent', function () {
-            const sendMock: SinonSpy = spy(global.process, 'send');
             DockerEvents._parseEventData(MockRawDockerEvent);
             expect(sendMock.calledWith({
                 args: '',
@@ -151,7 +182,7 @@ describe('DockerEvents module', function () {
                     scope: MockRawDockerEvent.scope,
                     actor: MockRawDockerEvent.Actor
                 }
-            })).to.be.true;
+            })).equal(true);
         });
     });
 
