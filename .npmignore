@@ -7,7 +7,6 @@ PULL_REQUEST_TEMPLATE.md
 .editorconfig
 .travis.yml
 docker-log.txt
-babel.config.js
 .eslintrc.json
 .nycrc
 .codeclimate.yml

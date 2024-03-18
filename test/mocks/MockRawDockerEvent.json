@@ -1,18 +1,18 @@
 {
-  "status": "start",
-  "id": "c06895765dcfe6df48a8a3d4f8e0f059bca7c05d5ffe6fea4bc8e531df10a4f9",
-  "from": "nginx",
-  "Type": "container",
-  "Action": "start",
-  "Actor": {
-    "ID": "c06895765dcfe6df48a8a3d4f8e0f059bca7c05d5ffe6fea4bc8e531df10a4f9",
-    "Attributes": {
-      "image": "nginx",
-      "maintainer": "NGINX Docker Maintainers <docker-maint@nginx.com>",
-      "name": "youthful_lalande"
-    }
-  },
-  "scope": "local",
-  "time": 1538453195,
-  "timeNano": 1538453195695881700
+    "status": "start",
+    "id": "c06895765dcfe6df48a8a3d4f8e0f059bca7c05d5ffe6fea4bc8e531df10a4f9",
+    "from": "nginx",
+    "Type": "container",
+    "Action": "start",
+    "Actor": {
+        "ID": "c06895765dcfe6df48a8a3d4f8e0f059bca7c05d5ffe6fea4bc8e531df10a4f9",
+        "Attributes": {
+            "image": "nginx",
+            "maintainer": "NGINX Docker Maintainers <docker-maint@nginx.com>",
+            "name": "youthful_lalande"
+        }
+    },
+    "scope": "local",
+    "time": 1538453195,
+    "timeNano": 1538453195695881700
 }
