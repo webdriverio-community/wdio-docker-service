@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { stub, spy, createSandbox, SinonStub, SinonSpy, SinonSandbox } from 'sinon';
-import { DockerLauncherForTests as DockerLauncher, DockerLauncherConfig } from '@/launcher.js';
-import Docker from '@/utils/docker.js';
+import { DockerLauncherForTests as DockerLauncher, DockerLauncherConfig } from '@root/launcher.js';
+import Docker from '@root/utils/docker.js';
 
 describe('DockerLauncher', async function () {
     let launcher: typeof DockerLauncher.prototype;
@@ -193,10 +193,15 @@ describe('DockerLauncher', async function () {
         });
 
         describe('@onDockerReady', function () {
-            context('when onDockerReady is provided', function () {
-                const sandbox: SinonSandbox = createSandbox();
-                const onDockerReady: SinonSpy = sandbox.spy();
-                const config: DockerLauncherConfig = {
+            let sandbox: SinonSandbox;
+            let onDockerReady: SinonSpy;
+            let config: DockerLauncherConfig;
+
+            beforeEach(function () {
+                sandbox = createSandbox();
+                onDockerReady = sandbox.spy();
+                sandbox.stub(Docker.prototype, 'run').resolves();
+                config = {
                     onDockerReady,
                     dockerOptions: {
                         image: 'hello-world',
@@ -204,7 +209,13 @@ describe('DockerLauncher', async function () {
                     capabilities: [],
                     logLevel: 'error'
                 };
+            });
 
+            afterEach(function () {
+                sandbox.restore();
+            });
+
+            context('when onDockerReady is provided', function () {
                 it('must call onDockerReady', async function () {
                     await launcher.onPrepare(config);
                     expect(onDockerReady.called).eq(true);
@@ -212,29 +223,15 @@ describe('DockerLauncher', async function () {
             });
 
             context('when docker run is rejected', function () {
-                let sandbox: SinonSandbox;
-                const onDockerReady: SinonSpy = spy();
-                const config: DockerLauncherConfig = {
-                    onDockerReady,
-                    dockerOptions: {
-                        image: 'hello-world',
-                    },
-                    capabilities: [],
-                    logLevel: 'silent'
-                };
-
                 beforeEach(function () {
-                    sandbox = createSandbox();
-                    sandbox.stub(Docker.prototype, 'run').rejects(new Error('Fail'));
-                });
-
-                afterEach(() => {
-                    sandbox.restore();        
+                    // Override the stub for this context
+                    (Docker.prototype.run as SinonStub).rejects(new Error('Fail'));
+                    config.logLevel = 'silent';
                 });
 
                 it('must NOT call onDockerReady', async function () {
                     try {
-                        return await launcher.onPrepare(config);
+                        await launcher.onPrepare(config);
                     } catch {
                         expect(onDockerReady.called).equal(false);
                     }

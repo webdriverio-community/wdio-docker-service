@@ -284,7 +284,7 @@ class Docker extends EventEmitter {
 
         try {
             await this._isImagePresent();
-        } catch (_err) {
+        } catch {
             this.logger.warn('NOTE: Pulling image for the first time. Please be patient.');
             return this._pullImage();
         }
@@ -313,7 +313,7 @@ class Docker extends EventEmitter {
         }
 
         await this._reportWhenDockerIsRunning();
-        this.logger.info('Docker container is ready');
+        this.logger.info('Docker container is ready ✅');
         return process;
     }
 
@@ -321,7 +321,7 @@ class Docker extends EventEmitter {
         await this._removeStaleContainer();
         
         if (this.process) {
-            this.process.kill(this.process.pid);
+            this.process.kill();
             this.process = null;
         }
 
@@ -341,7 +341,7 @@ class Docker extends EventEmitter {
         } = this.healthCheck as HealthCheckArgs;
 
         if (url === undefined) {
-            return Promise.resolve();
+            return 'No health check URL provided';
         }
 
         const waitForDockerHealthCheck = new Promise<void>((resolve) => {
@@ -404,15 +404,16 @@ class Docker extends EventEmitter {
      */
     async _removeStaleContainer() {
         try {
-            this.logger.info('Cleaning up stale docker files...');
+            this.logger.info('🧹🧹 Cleaning up stale docker files 🧹🧹');
             const cid = await fs.readFile(this.cidfile);
-            this.logger.info('1. Shutting down running container');
+            this.logger.info('1. Shutting down running container ⏱');
             await Docker.stopContainer(cid.toString());
             await Docker.removeContainer(cid.toString());
+        } catch {
+            this.logger.info('No stale container found ✅');
         }
-        catch (_err) {} // eslint-disable-line no-empty
 
-        this.logger.info('2. Cleaning up CID files');
+        this.logger.info('2. Cleaning up CID files 🧹');
         await fs.remove(this.cidfile);
     }
 
@@ -431,6 +432,17 @@ class Docker extends EventEmitter {
     }
 }
 
+type CommandResult = {
+    /** Command exit code */
+    code: number;
+    /** Command stdout */
+    stdout: string;
+    /** Command stderr */
+    stderr: string;
+    /** Command executed */
+    command: string;
+}
+
 class DockerForTests extends Docker {
     declare public args?: string;
     declare public cidfile: string;
@@ -444,8 +456,8 @@ class DockerForTests extends Docker {
     declare public dockerRunCommand: string[];
     declare public options: Record<string, unknown>;
     declare public _reportWhenDockerIsRunning: () => Promise<void>;
-    declare public _isImagePresent: () => Promise<ChildProcess>;
-    declare public _pullImage: () => Promise<ChildProcess>;
+    declare public _isImagePresent: () => Promise<CommandResult>;
+    declare public _pullImage: () => Promise<CommandResult>;
 }
 
 export default Docker;

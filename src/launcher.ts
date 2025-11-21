@@ -10,7 +10,7 @@ import type { WebDriverLogTypes } from '@wdio/types/build/Options.js';
 const DEFAULT_LOG_FILENAME = 'docker-log.txt';
 const LoggerService = logger('wdio-docker-service');
 
-export interface DockerLauncherConfig extends Options.Testrunner { 
+export interface DockerLauncherConfig extends WebdriverIO.Config { 
     dockerOptions: DockerArgs & { image: string };
     logToStdout?: boolean;
     dockerLogs?: string | null;
@@ -26,9 +26,9 @@ class DockerLauncher implements Services.ServiceInstance {
     watchMode?: boolean;
 
     constructor(
-        private _options?: unknown,
-        private _capabilities?: Capabilities.RemoteCapability,
-        private _config?: Omit<Options.Testrunner, 'capabilities'>
+        _options?: Services.ServiceOption,
+        _capabilities?: Capabilities.ResolvedTestrunnerCapabilities,
+        _config?: Options.WebdriverIO
     ) {
         this.logToStdout = false;
         this.docker = null;

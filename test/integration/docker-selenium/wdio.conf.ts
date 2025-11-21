@@ -1,30 +1,23 @@
-import * as url from 'url';
-import { join } from 'path';
-// TODO: Investigate why path alias won't work here
-import DockerLauncher, { DockerLauncherConfig } from '@/launcher.ts';
-
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+import DockerLauncher, { DockerLauncherConfig } from '@root/launcher.ts';
 
 export const config: DockerLauncherConfig = {
-    hostname: '127.0.0.1',
+    port: 4444,
     specs: ['./*.spec.ts'],
-    path: '/wd/hub',
     runner: 'local',
     capabilities: [{
         browserName: 'chrome',
-        browserVersion: '120.0-chromedriver-120.0',
+        'goog:chromeOptions': {
+            args: [
+                '--no-sandbox',
+                '--disable-dev-shm-usage',
+                '--headless',
+                '--remote-debugging-pipe',
+            ],
+        }
     }],
-    autoCompileOpts: {
-        autoCompile: true,
-        tsNodeOpts: {
-            project: join(__dirname, 'tsconfig.json'),
-            // @ts-expect-error swc property needs to be added to type definition
-            swc: true,
-        },
-    },
 
     baseUrl: 'http://webdriver.io',
-    logLevel: 'debug',
+    logLevel: 'info',
 
     waitforTimeout: 10000,
     connectionRetryTimeout: 90000,
@@ -35,15 +28,15 @@ export const config: DockerLauncherConfig = {
         ui: 'bdd',
     },
     reporters: ['spec'],
-    // Based on types, I should be able to pass [DockerLauncher] here, but it doesn't work
     services: [[DockerLauncher, {}]],
     dockerLogs: './',
     dockerOptions: {
-        image: 'selenium/standalone-chrome',
-        healthCheck: 'http://127.0.0.1:4444',
+        image: 'selenium/standalone-chrome:129.0.6668.100',
+        healthCheck: 'http://host.docker.internal:4444',
         options: {
-            p: ['4444:4444', '7900:7900'],
-            shmSize: '2g'
-        }
+            p: ['4444:4444'],
+            shmSize: '2g',
+            env: ['SE_NODE_MAX_SESSION=4', 'SE_NODE_OVERRIDE_MAX_SESSION=true'],
+        },
     }
 };

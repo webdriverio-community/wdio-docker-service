@@ -1,4 +1,4 @@
-import DockerEventsListener from '@/utils/dockerEventsListener.ts';
+import DockerEventsListener from '@root/utils/dockerEventsListener.ts';
 import MockForkedProcess from './MockForkedProcess.ts';
 
 class DockerEventsListenerForTests extends DockerEventsListener {

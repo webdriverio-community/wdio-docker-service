@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import deepMerge from '@/utils/deepMerge.js';
+import deepMerge from '@root/utils/deepMerge.js';
 
 describe('#deepMerge', function () {
     context('when a single plain object source is provided', function () {

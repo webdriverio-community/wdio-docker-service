@@ -1,13 +1,39 @@
 import path from 'path';
 import fs from 'fs-extra';
 import { expect } from 'chai';
-import { stub, spy, createSandbox, SinonStub, SinonSpy, SinonSandbox } from 'sinon';
-import * as ChildProcess from '@/utils/childProcess.js';
-import { DockerForTests as Docker } from '@/utils/docker.js';
-import DockerEventsListener from '@/utils/dockerEventsListener.js';
+import { stub, spy, SinonStub, SinonSpy } from 'sinon';
+import esmock from 'esmock';
+import DockerEventsListener from '@root/utils/dockerEventsListener.js';
+
+import type { DockerForTests } from '@root/utils/docker.js';
 
 describe('Docker', function () {
     const SPACE = ' ';
+    let Docker: typeof DockerForTests;
+    let runProcessStub: SinonStub;
+    let runCommandStub: SinonStub;
+    let pingStub: SinonStub;
+
+    before(async function () {
+        runProcessStub = stub();
+        runCommandStub = stub();
+        pingStub = stub();
+
+        const dockerModule = await esmock('../../../src/utils/docker.js', {
+            '../../../src/utils/childProcess.js': {
+                runProcess: runProcessStub,
+                runCommand: runCommandStub
+            },
+            '../../../src/utils/dockerEventsListener.js': DockerEventsListener,
+            '../../../src/utils/ping.js': {
+                Ping: pingStub
+            },
+            'fs-extra': {
+                default: fs
+            }
+        });
+        Docker = dockerModule.DockerForTests;
+    });
 
     describe('#constructor', function () {
         context('when image argument is not provided', function () {
@@ -124,12 +150,12 @@ describe('Docker', function () {
         let stubRemoveStaleContainer: SinonStub<Parameters<typeof Docker.prototype._removeStaleContainer>>;
         let stubDisconnect: SinonStub<Parameters<typeof DockerEventsListener.prototype.disconnect>>;
 
-        before(function () {
+        beforeEach(function () {
             stubRemoveStaleContainer = stub(Docker.prototype, '_removeStaleContainer').resolves();
             stubDisconnect = stub(DockerEventsListener.prototype, 'disconnect');
         });
 
-        after(function () {
+        afterEach(function () {
             stubRemoveStaleContainer.restore();
             stubDisconnect.restore();
         });
@@ -156,21 +182,20 @@ describe('Docker', function () {
             kill: spy(),
         };
 
-        let stubRunProcess: SinonStub<Parameters<typeof ChildProcess.runProcess>>;
         let stubRemoveStaleContainer: SinonStub<Parameters<typeof Docker.prototype._removeStaleContainer>>;
         let stubReportWhenDockerIsRunning: SinonStub<Parameters<typeof Docker.prototype._reportWhenDockerIsRunning>>;
         let stubConnect: SinonStub<Parameters<typeof DockerEventsListener.prototype.connect>>;
 
         beforeEach(function () {
-            // @ts-expect-error Test value
-            stubRunProcess = stub(ChildProcess, 'runProcess').resolves(mockProcess);
+            runProcessStub.reset();
+            runProcessStub.resolves(mockProcess);
+            
             stubRemoveStaleContainer = stub(Docker.prototype, '_removeStaleContainer').resolves();
             stubReportWhenDockerIsRunning = stub(Docker.prototype, '_reportWhenDockerIsRunning').resolves();
             stubConnect = stub(DockerEventsListener.prototype, 'connect');
         });
 
         afterEach(function () {
-            stubRunProcess.restore();
             stubRemoveStaleContainer.restore();
             stubReportWhenDockerIsRunning.restore();
             stubConnect.restore();
@@ -180,12 +205,12 @@ describe('Docker', function () {
             let stubIsImagePresent: SinonStub<Parameters<typeof Docker.prototype._isImagePresent>>;
             let stubPullImage: SinonStub<Parameters<typeof Docker.prototype._pullImage>>;
 
-            before(function () {
+            beforeEach(function () {
                 stubIsImagePresent = stub(Docker.prototype, '_isImagePresent').rejects();
                 stubPullImage = stub(Docker.prototype, '_pullImage').resolves();
             });
 
-            after(function () {
+            afterEach(function () {
                 stubIsImagePresent.restore();
                 stubPullImage.restore();
             });
@@ -203,12 +228,17 @@ describe('Docker', function () {
             let stubIsImagePresent: SinonStub<Parameters<typeof Docker.prototype._isImagePresent>>;
             let stubPullImage: SinonStub<Parameters<typeof Docker.prototype._pullImage>>;
 
-            before(function () {
-                stubIsImagePresent = stub(Docker.prototype, '_isImagePresent').rejects();
+            beforeEach(function () {
+                stubIsImagePresent = stub(Docker.prototype, '_isImagePresent').resolves({
+                    code: 0,
+                    stdout: '',
+                    stderr: '',
+                    command: ''
+                });
                 stubPullImage = stub(Docker.prototype, '_pullImage').resolves();
             });
 
-            after(function () {
+            afterEach(function () {
                 stubIsImagePresent.restore();
                 stubPullImage.restore();
             });
@@ -218,7 +248,7 @@ describe('Docker', function () {
 
                 return docker.run().then(() => {
                     expect(stubPullImage.called).to.eql(false);
-                    expect(stubRunProcess.called).to.eql(true);
+                    expect(runProcessStub.called).to.eql(true);
                 });
             });
 
@@ -228,7 +258,7 @@ describe('Docker', function () {
                 docker.on('processCreated', processCreatedSpy);
 
                 return docker.run().then(() => {
-                    expect(stubRunProcess.called).to.eql(true);
+                    expect(runProcessStub.called).to.eql(true);
                     expect(processCreatedSpy.called).to.eql(true);
                 });
             });
@@ -236,66 +266,52 @@ describe('Docker', function () {
     });
 
     describe('#stopContainer', function () {
-        let stubRunCommand: SinonStub<Parameters<typeof ChildProcess.runCommand>>;
-
-        before(function () {
-            stubRunCommand = stub(ChildProcess, 'runCommand').resolves();
-        });
-
-        after(function () {
-            stubRunCommand.restore();
+        beforeEach(function () {
+            runCommandStub.reset();
+            runCommandStub.resolves();
         });
 
         it('must call docker command to stop running conrainer', function () {
             return Docker.stopContainer('123').then(() => {
-                expect(stubRunCommand.calledWith(['docker', 'stop', '123'])).to.eql(true);
+                expect(runCommandStub.calledWith(['docker', 'stop', '123'])).to.eql(true);
             });
         });
     });
 
     describe('#removeContainer', function () {
-        let stubRunCommand: SinonStub<Parameters<typeof ChildProcess.runCommand>>;
-
-        before(function () {
-            stubRunCommand = stub(ChildProcess, 'runCommand').resolves();
+        beforeEach(function () {
+            runCommandStub.reset();
+            runCommandStub.resolves();
         });
 
-        after(function () {
-            stubRunCommand.restore();
-        });
-
-        it('must call docker command to stop running conrainer', function () {
+        it('must call docker command to stop running container', function () {
             return Docker.removeContainer('123').then(() => {
-                expect(stubRunCommand.calledWith(['docker', 'rm', '123'])).to.eql(true);
+                expect(runCommandStub.calledWith(['docker', 'rm', '123'])).to.eql(true);
             });
         });
     });
 
     describe('#_removeStaleContainer', function () {
         let stubRemove: SinonStub<Parameters<typeof fs.remove>>;
-        let stubStopContainer: SinonStub<Parameters<typeof Docker.stopContainer>>;
-        let stubRemoveContainer: SinonStub<Parameters<typeof Docker.removeContainer>>;
 
         beforeEach(function () {
             stubRemove = stub(fs, 'remove').resolves();
-            stubStopContainer = stub(Docker, 'stopContainer').resolves();
-            stubRemoveContainer = stub(Docker, 'removeContainer').resolves();
+            runCommandStub.reset();
+            runCommandStub.resolves();
         });
 
         afterEach(function () {
             stubRemove.restore();
-            stubStopContainer.restore();
-            stubRemoveContainer.restore();
         });
 
         context('when cid file exists', function () {
             let stubReadFile: SinonStub<Parameters<typeof fs.readFile>>;
 
-            before(function () {
+            beforeEach(function () {
                 stubReadFile = stub(fs, 'readFile').resolves('123');
             });
 
-            after(function () {
+            afterEach(function () {
                 stubReadFile.restore();
             });
 
@@ -305,8 +321,8 @@ describe('Docker', function () {
                 return docker._removeStaleContainer().then(() => {
                     expect(stubReadFile.calledWith(docker.cidfile)).to.eql(true);
                     expect(stubRemove.calledWith(docker.cidfile)).to.eql(true);
-                    expect(stubStopContainer.calledWith('123')).to.eql(true);
-                    expect(stubRemoveContainer.calledWith('123')).to.eql(true);
+                    expect(runCommandStub.calledWith(['docker', 'stop', '123'])).to.eql(true);
+                    expect(runCommandStub.calledWith(['docker', 'rm', '123'])).to.eql(true);
                 });
             });
         });
@@ -314,11 +330,11 @@ describe('Docker', function () {
         context('when cid file does not exist', function () {
             let stubReadFile: SinonStub<Parameters<typeof fs.readFile>>;
 
-            before(function () {
+            beforeEach(function () {
                 stubReadFile = stub(fs, 'readFile').rejects();
             });
 
-            after(function () {
+            afterEach(function () {
                 stubReadFile.restore();
             });
 
@@ -328,87 +344,66 @@ describe('Docker', function () {
                 return docker._removeStaleContainer().catch(() => {
                     expect(stubReadFile.calledWith(docker.cidfile)).to.eql(true);
                     expect(stubRemove.calledWith(docker.cidfile)).to.eql(true);
-                    expect(stubStopContainer.calledWith('123')).to.eql(false);
-                    expect(stubRemoveContainer.calledWith('123')).to.eql(false);
+                    expect(runCommandStub.called).to.eql(false);
                 });
             });
         });
     });
 
     describe('#_pullImage', function () {
-        let stubRunCommand: SinonStub<Parameters<typeof ChildProcess.runCommand>>;
-
-        before(function () {
-            stubRunCommand = stub(ChildProcess, 'runCommand').resolves();
-        });
-
-        after(function () {
-            stubRunCommand.restore();
+        beforeEach(function () {
+            runCommandStub.reset();
+            runCommandStub.resolves();
         });
 
         it('must call runCommand', function () {
             const docker = new Docker('my-image');
             return docker._pullImage().then(() => {
-                expect(stubRunCommand.calledWith(['docker', 'pull', 'my-image'])).to.eql(true);
+                expect(runCommandStub.calledWith(['docker', 'pull', 'my-image'])).to.eql(true);
             });
         });
     });
 
     describe('#_isImagePresent', function () {
-        let stubRunCommand: SinonStub<Parameters<typeof ChildProcess.runCommand>>;
-
-        before(function () {
-            stubRunCommand = stub(ChildProcess, 'runCommand').resolves();
-        });
-
-        after(function () {
-            stubRunCommand.restore();
+        beforeEach(function () {
+            runCommandStub.reset();
+            runCommandStub.resolves();
         });
 
         it('must call runCommand', function () {
             const docker = new Docker('my-image');
             return docker._isImagePresent().then(() => {
-                expect(stubRunCommand.calledWith(['docker', 'inspect', 'my-image'])).to.eql(true);
+                expect(runCommandStub.calledWith(['docker', 'inspect', 'my-image'])).to.eql(true);
             });
         });
     });
 
     describe('#_reportWhenDockerIsRunning', function () {
-        context('when healthCheck is not set', async function () {
-            const pingDef = (await import('@/utils/ping.js')).default;
-            let stubPing: SinonStub<Parameters<typeof pingDef.prototype.Ping>>;
-            let sandbox: SinonSandbox;
-
-            before(function () {
-                sandbox = createSandbox();
-                stubPing = sandbox.stub(pingDef.prototype, 'Ping').rejects();
-            });
-
-            afterEach(function () {
-                sandbox.restore();
+        context('when healthCheck is not set', function () {
+            beforeEach(function () {
+                pingStub.reset();
+                pingStub.rejects();
             });
 
             it('must resolve promise right away', async function () {
                 const docker = new Docker('my-image');
 
                 await docker._reportWhenDockerIsRunning();
-                expect(stubPing.called).to.eql(false);
+                expect(pingStub.called).to.eql(false);
             });
         });
 
-        context('when healthCheck is provided', async function () {
-            const pingDef = (await import('@/utils/ping.js')).default;
+        context('when healthCheck is provided', function () {
             const newUrl = new URL('http://localhost:8080');
-            let stubPing: SinonStub<Parameters<typeof pingDef.prototype.Ping>>;
             let spyClearTimeout: SinonSpy<Parameters<typeof global.clearTimeout>>;
 
-            before(function () {
-                stubPing = stub(pingDef.prototype, 'Ping').resolves();
+            beforeEach(function () {
+                pingStub.reset();
+                pingStub.resolves();
                 spyClearTimeout = spy(global, 'clearTimeout');
             });
 
-            after(function () {
-                stubPing.restore();
+            afterEach(function () {
                 spyClearTimeout.restore();
             });
 
@@ -419,23 +414,21 @@ describe('Docker', function () {
 
                 return docker._reportWhenDockerIsRunning().then(() => {
                     expect(spyClearTimeout.called).to.eql(true);
-                    expect(stubPing.calledWith(newUrl)).to.eql(true);
+                    expect(pingStub.calledWith(newUrl)).to.eql(true);
                 });
             });
         });
 
-        context('when maxRetries is specified and url is unreachable', async function () {
-            const pingDef = (await import('@/utils/ping.js')).default;
-            let stubPing: SinonStub<Parameters<typeof pingDef.prototype.Ping>>;
+        context('when maxRetries is specified and url is unreachable', function () {
             let spyClearTimeout: SinonSpy<Parameters<typeof global.clearTimeout>>;
 
-            before(function () {
-                stubPing = stub(pingDef.prototype, 'Ping').rejects();
+            beforeEach(function () {
+                pingStub.reset();
+                pingStub.rejects();
                 spyClearTimeout = spy(global, 'clearTimeout');
             });
 
-            after(function () {
-                stubPing.restore();
+            afterEach(function () {
                 spyClearTimeout.restore();
             });
 
@@ -451,24 +444,22 @@ describe('Docker', function () {
 
                 return docker._reportWhenDockerIsRunning().catch(() => {
                     expect(spyClearTimeout.called).to.eql(true);
-                    expect(stubPing.calledThrice).to.eql(true);
+                    expect(pingStub.calledThrice).to.eql(true);
                 });
             });
         });
 
-        context('when healthCheck is provided but is unreachable', async function () {
-            const pingDef = (await import('@/utils/ping.js')).default;
+        context('when healthCheck is provided but is unreachable', function () {
             const newUrl = new URL('http://localhost:8080');
-            let stubPing: SinonStub<Parameters<typeof pingDef.prototype.Ping>>;
             let spyClearTimeout: SinonSpy<Parameters<typeof global.clearTimeout>>;
 
-            before(function () {
-                stubPing = stub(pingDef.prototype, 'Ping').rejects();
+            beforeEach(function () {
+                pingStub.reset();
+                pingStub.rejects();
                 spyClearTimeout = spy(global, 'clearTimeout');
             });
 
-            after(function () {
-                stubPing.restore();
+            afterEach(function () {
                 spyClearTimeout.restore();
             });
 
@@ -483,9 +474,9 @@ describe('Docker', function () {
                     await docker._reportWhenDockerIsRunning();
                 } catch {
                     expect(spyClearTimeout.called).to.eql(true);
-                    expect(stubPing.calledWith(newUrl)).to.eql(true);
+                    expect(pingStub.calledWith(newUrl)).to.eql(true);
                 }
             });
-        });
+       });
     });
 });

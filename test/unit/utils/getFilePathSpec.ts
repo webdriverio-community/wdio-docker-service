@@ -1,6 +1,6 @@
 import path from 'path';
 import { expect } from 'chai';
-import getFilePath from '@/utils/getFilePath.js';
+import getFilePath from '@root/utils/getFilePath.js';
 
 describe('#getFilePath', function () {
     before(function () {

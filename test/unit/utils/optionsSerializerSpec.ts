@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { sanitizeValue, serializeOption, serializeOptions } from '@/utils/optionsSerializer.js';
+import { sanitizeValue, serializeOption, serializeOptions } from '@root/utils/optionsSerializer.js';
 
 describe('Options Serializer', function() {
     describe('#serializeOption', function() {

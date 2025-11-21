@@ -127,7 +127,7 @@ const DockerEvents = {
     _tryParse(text: string) {
         try {
             return JSON.parse(text);
-        } catch (e) {
+        } catch {
             return null;
         }
     },

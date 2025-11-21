@@ -1,9 +1,9 @@
+/* eslint-disable no-undef */
 module.exports = {
-  // loader: ["ts-node/esm"],
-  extensions: ["ts"],
-  spec: "test/unit/**/*",
-  require: ["tsx"],
-  import: ["tsx/esm"],
-  exit: true,
-  timeout: 10000,
+    extensions: ['ts'],
+    spec: 'test/unit/**/*.ts',
+    require: ['tsx'],
+    import: ['tsx/esm'],
+    exit: true,
+    timeout: 10000,
 };

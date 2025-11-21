@@ -1,5 +1,5 @@
 import EventEmitter from 'events';
-import { fork, ChildProcess } from 'child_process';
+import { fork as defaultFork, ChildProcess } from 'child_process';
 import path from 'path';
 import url from 'url';
 
@@ -7,19 +7,21 @@ import type { Logger } from '@wdio/logger';
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
-const DOCKER_EVENTS_MODULE = path.resolve(__dirname, '..', 'modules/dockerEvents.ts');
+export const DOCKER_EVENTS_MODULE = path.resolve(__dirname, '..', 'modules/dockerEvents.ts');
 
 class DockerEventsListener extends EventEmitter {
     logger: Logger | Console;
     _subprocess: ChildProcess | null;
+    private _fork: typeof defaultFork;
     
-    constructor(logger: Logger | Console = console) {
+    constructor(logger: Logger | Console = console, fork: typeof defaultFork = defaultFork) {
         super();
 
         this.logger = logger;
         this._subprocess = null;
         this._onMessage = this._onMessage.bind(this);
         this._onError = this._onError.bind(this);
+        this._fork = fork;
     }
 
     connect(
@@ -28,7 +30,7 @@ class DockerEventsListener extends EventEmitter {
     ) {
         this.disconnect();
 
-        const sps = fork(DOCKER_EVENTS_MODULE);
+        const sps = this._fork(DOCKER_EVENTS_MODULE);
         sps.on('message', this._onMessage);
         sps.on('error', this._onError);
         sps.send(opt);

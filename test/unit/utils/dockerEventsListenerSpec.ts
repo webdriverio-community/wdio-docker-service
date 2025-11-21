@@ -1,11 +1,11 @@
 import { expect } from 'chai';
-import { stub, spy, SinonStub, SinonSpy } from 'sinon';
-import path from 'path';
-import ChildProcess from 'child_process';
 import logger from '@wdio/logger';
+import * as ChildProcess from 'child_process';
+import { stub, spy, createSandbox, SinonStub, SinonSpy, SinonSandbox } from 'sinon';
 import MockDockerEvent from '@test/mocks/MockDockerEvent.json';
 import MockForkedProcess from '@test/mocks/MockForkedProcess.js';
 import DockerEventsListener from '@test/mocks/MockDockerEventsListener.js';
+import { DOCKER_EVENTS_MODULE } from '@root/utils/dockerEventsListener.ts';
 
 const Logger = logger('wdio-docker-service-test');
 
@@ -46,24 +46,25 @@ describe('DockerEventsListener', function () {
         });
     });
 
-    describe('#connect', function () {
-        let mockChildProcess: SinonStub<Parameters<(typeof ChildProcess)['fork']>>;
-        let spyMockForkedProcessOn: SinonSpy<Parameters<typeof MockForkedProcess.prototype.on>>;
+    describe('#connect', async function () {
+        let sandbox: SinonSandbox;
+        let forkStub: SinonStub<unknown[]>;
+        let spyMockForkedProcessOn: SinonSpy;
         let spyDisconnect: SinonSpy<Parameters<typeof DockerEventsListener.prototype.disconnect>>;
+        let forkedInstance: MockForkedProcess;
 
         beforeEach(function () {
-            mockChildProcess = stub(ChildProcess, 'fork').callsFake((module) => {
-                return new MockForkedProcess(module);
-            });
-            spyMockForkedProcessOn = spy(MockForkedProcess.prototype, 'on');
-            dockerEventsListener = new DockerEventsListener(Logger);
-            spyDisconnect = spy(dockerEventsListener, 'disconnect');
+            sandbox = createSandbox();
+            forkedInstance = new MockForkedProcess('someModule');
+            spyMockForkedProcessOn = sandbox.spy(forkedInstance, 'on');
+            forkStub = sandbox.stub().returns(forkedInstance);
+            dockerEventsListener = new DockerEventsListener(Logger, forkStub);
+            spyDisconnect = sandbox.spy(dockerEventsListener, 'disconnect');
             dockerEventsListener.connect({ foo: 'bar' });
         });
 
         afterEach(function () {
-            mockChildProcess.restore();
-            spyMockForkedProcessOn.restore();
+            sandbox.restore();
         });
 
         it('must call #disconnect first', function () {
@@ -71,47 +72,37 @@ describe('DockerEventsListener', function () {
         });
 
         it('must fork a sub-process', function () {
-            const modulePath = path.resolve(__dirname, '@/modules/dockerEvents');
-            expect(mockChildProcess.calledWith(modulePath)).to.be.true;
+            expect(forkStub.calledWith(DOCKER_EVENTS_MODULE)).to.be.true;
         });
 
         it('must bind to message event of sub-process', function () {
-            // @ts-expect-error Test type
             expect(spyMockForkedProcessOn.calledWith('message')).to.be.true;
         });
 
         it('must bind to error event of sub-process', function () {
-            // @ts-expect-error Test type
             expect(spyMockForkedProcessOn.calledWith('error')).to.be.true;
         });
 
         it('must send options to sub-process', function () {
-            const spySubprocess: SinonSpy<Parameters<typeof MockForkedProcess.prototype.send>> = spy(
-                dockerEventsListener._subprocess!,
-                'send'
-            );
-            expect(spySubprocess.calledWith({ foo: 'bar' })).to.be.true;
+            // @ts-expect-error Test type
+            expect(forkedInstance.send.calledWith({ foo: 'bar' })).to.be.true;
         });
     });
 
     describe('#disconnect', function () {
-        let childProcess: SinonStub<Parameters<(typeof ChildProcess)['fork']>>;
+        let forkStub: SinonStub;
         beforeEach(function () {
-            childProcess = stub(ChildProcess, 'fork').callsFake((module) => {
+            forkStub = stub().callsFake((module) => {
                 return new MockForkedProcess(module);
             });
 
-            dockerEventsListener = new DockerEventsListener(Logger);
+            dockerEventsListener = new DockerEventsListener(Logger, forkStub);
             dockerEventsListener.connect();
-        });
-
-        afterEach(function () {
-            childProcess.restore();
         });
 
         context('when sub-process exists and connected', function () {
             it('must call disconnect on sub-process', function () {
-                const subProcess = spy(dockerEventsListener._subprocess!, 'disconnect');
+                const subProcess = dockerEventsListener._subprocess!.disconnect as unknown as SinonStub;
 
                 dockerEventsListener.disconnect();
                 expect(subProcess.called).to.be.true;
@@ -121,7 +112,7 @@ describe('DockerEventsListener', function () {
 
         context('when sub-process is not connected', function () {
             it('must not call disconnect on sub-process', function () {
-                const subProcess = spy(dockerEventsListener._subprocess!, 'connected');
+                const subProcess = dockerEventsListener._subprocess!.disconnect as unknown as SinonStub;
 
                 dockerEventsListener._subprocess!.connected = false;
                 dockerEventsListener.disconnect();
@@ -132,18 +123,14 @@ describe('DockerEventsListener', function () {
     });
 
     describe('#_onMessage', function () {
-        let stubChildProcessFork: SinonStub<Parameters<(typeof ChildProcess)['fork']>>;
+        let forkStub: SinonStub;
         beforeEach(function () {
-            stubChildProcessFork = stub(ChildProcess, 'fork').callsFake((module) => {
+            forkStub = stub().callsFake((module) => {
                 return new MockForkedProcess(module);
             });
 
-            dockerEventsListener = new DockerEventsListener(Logger);
+            dockerEventsListener = new DockerEventsListener(Logger, forkStub);
             dockerEventsListener.connect();
-        });
-
-        afterEach(function () {
-            stubChildProcessFork.restore();
         });
 
         context('when message is an error', function () {

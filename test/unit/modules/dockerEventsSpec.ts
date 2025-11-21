@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { stub, spy, createSandbox, SinonStub, SinonSpy, SinonSandbox } from 'sinon';
 import ChildProcess from 'child_process';
-import DockerEvents from '@/modules/dockerEvents.js';
+import DockerEvents from '@root/modules/dockerEvents.js';
 import MockChildProcess from '@test/mocks/MockChildProcess.js';
 import MockRawDockerEvent from '@test/mocks/MockRawDockerEvent.json';
 
