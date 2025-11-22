@@ -3,7 +3,7 @@ import { EventEmitter } from 'node:events'
 import fs from 'fs-extra'
 import path from 'node:path'
 
-import { Ping } from './ping.js'
+import Ping from './ping.js'
 import deepMerge from './deepMerge.js'
 import serializeOptions from './optionsSerializer.js'
 import { runCommand, runProcess } from './childProcess.js'

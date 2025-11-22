@@ -5,9 +5,8 @@ import { describe, it, expect, beforeEach, afterEach, vi, beforeAll } from 'vite
 import DockerEventsListener from '@root/utils/dockerEventsListener.js'
 import { DockerForTests } from '@root/utils/docker.js'
 import * as ChildProcessUtils from '@root/utils/childProcess.js'
-import * as PingUtils from '@root/utils/ping.js'
+import PingUtils from '@root/utils/ping.js'
 
-// Mock dependencies
 vi.mock('@root/utils/childProcess.js')
 vi.mock('@root/utils/ping.js')
 vi.mock('fs-extra')
@@ -19,7 +18,7 @@ describe('Docker', function () {
     // Access mocks
     const runProcessMock = ChildProcessUtils.runProcess as unknown as MockInstance
     const runCommandMock = ChildProcessUtils.runCommand as unknown as MockInstance
-    const pingMock = PingUtils.Ping as unknown as MockInstance
+    const pingMock = PingUtils as unknown as MockInstance
 
     beforeAll(() => {
         Docker = DockerForTests
