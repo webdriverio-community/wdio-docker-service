@@ -1,7 +1,5 @@
-import { expect } from 'chai';
+import { describe, it, expect, beforeEach, afterEach, vi, MockInstance } from 'vitest';
 import logger from '@wdio/logger';
-import * as ChildProcess from 'child_process';
-import { stub, spy, createSandbox, SinonStub, SinonSpy, SinonSandbox } from 'sinon';
 import MockDockerEvent from '@test/mocks/MockDockerEvent.json';
 import MockForkedProcess from '@test/mocks/MockForkedProcess.js';
 import DockerEventsListener from '@test/mocks/MockDockerEventsListener.js';
@@ -13,133 +11,130 @@ describe('DockerEventsListener', function () {
     let dockerEventsListener: DockerEventsListener;
 
     describe('#constructor', function () {
-        context('when instantiating w/o arguments', function () {
+        describe('when instantiating w/o arguments', function () {
             beforeEach(function () {
                 dockerEventsListener = new DockerEventsListener();
             });
 
             it('must instantiate DockerEventListener', function () {
-                expect(dockerEventsListener).to.be.instanceOf(DockerEventsListener);
+                expect(dockerEventsListener).toBeInstanceOf(DockerEventsListener);
             });
 
             it('must set @logger to console', function () {
-                expect(dockerEventsListener.logger).to.eql(global.console);
+                expect(dockerEventsListener.logger).toEqual(global.console);
             });
 
             it('must set @_subprocess to null', function () {
-                expect(dockerEventsListener._subprocess).to.be.null;
+                expect(dockerEventsListener._subprocess).toBeNull();
             });
         });
 
-        context('when instantiating with arguments', function () {
+        describe('when instantiating with arguments', function () {
             beforeEach(function () {
                 dockerEventsListener = new DockerEventsListener(Logger);
             });
 
             it('must instantiate DockerEventListener', function () {
-                expect(dockerEventsListener).to.be.instanceOf(DockerEventsListener);
+                expect(dockerEventsListener).toBeInstanceOf(DockerEventsListener);
             });
 
             it('must set @logger to Logger', function () {
-                expect(dockerEventsListener.logger).to.eql(Logger);
+                expect(dockerEventsListener.logger).toEqual(Logger);
             });
         });
     });
 
     describe('#connect', async function () {
-        let sandbox: SinonSandbox;
-        let forkStub: SinonStub<unknown[]>;
-        let spyMockForkedProcessOn: SinonSpy;
-        let spyDisconnect: SinonSpy<Parameters<typeof DockerEventsListener.prototype.disconnect>>;
+        let forkStub: MockInstance;
+        let spyMockForkedProcessOn: MockInstance;
+        let spyDisconnect: MockInstance;
         let forkedInstance: MockForkedProcess;
 
         beforeEach(function () {
-            sandbox = createSandbox();
             forkedInstance = new MockForkedProcess('someModule');
-            spyMockForkedProcessOn = sandbox.spy(forkedInstance, 'on');
-            forkStub = sandbox.stub().returns(forkedInstance);
-            dockerEventsListener = new DockerEventsListener(Logger, forkStub);
-            spyDisconnect = sandbox.spy(dockerEventsListener, 'disconnect');
+            spyMockForkedProcessOn = vi.spyOn(forkedInstance, 'on');
+            forkStub = vi.fn().mockReturnValue(forkedInstance);
+            dockerEventsListener = new DockerEventsListener(Logger, forkStub as any);
+            spyDisconnect = vi.spyOn(dockerEventsListener, 'disconnect');
             dockerEventsListener.connect({ foo: 'bar' });
         });
 
         afterEach(function () {
-            sandbox.restore();
+            vi.restoreAllMocks();
         });
 
         it('must call #disconnect first', function () {
-            expect(spyDisconnect.called).to.be.true;
+            expect(spyDisconnect).toHaveBeenCalled();
         });
 
         it('must fork a sub-process', function () {
-            expect(forkStub.calledWith(DOCKER_EVENTS_MODULE)).to.be.true;
+            expect(forkStub).toHaveBeenCalledWith(DOCKER_EVENTS_MODULE);
         });
 
         it('must bind to message event of sub-process', function () {
-            expect(spyMockForkedProcessOn.calledWith('message')).to.be.true;
+            expect(spyMockForkedProcessOn).toHaveBeenCalledWith('message', expect.any(Function));
         });
 
         it('must bind to error event of sub-process', function () {
-            expect(spyMockForkedProcessOn.calledWith('error')).to.be.true;
+            expect(spyMockForkedProcessOn).toHaveBeenCalledWith('error', expect.any(Function));
         });
 
         it('must send options to sub-process', function () {
-            // @ts-expect-error Test type
-            expect(forkedInstance.send.calledWith({ foo: 'bar' })).to.be.true;
+            expect(forkedInstance.send).toHaveBeenCalledWith({ foo: 'bar' });
         });
     });
 
     describe('#disconnect', function () {
-        let forkStub: SinonStub;
+        let forkStub: MockInstance;
         beforeEach(function () {
-            forkStub = stub().callsFake((module) => {
+            forkStub = vi.fn().mockImplementation((module) => {
                 return new MockForkedProcess(module);
             });
 
-            dockerEventsListener = new DockerEventsListener(Logger, forkStub);
+            dockerEventsListener = new DockerEventsListener(Logger, forkStub as any);
             dockerEventsListener.connect();
         });
 
-        context('when sub-process exists and connected', function () {
+        describe('when sub-process exists and connected', function () {
             it('must call disconnect on sub-process', function () {
-                const subProcess = dockerEventsListener._subprocess!.disconnect as unknown as SinonStub;
+                const subProcess = dockerEventsListener._subprocess!.disconnect as unknown as MockInstance;
 
                 dockerEventsListener.disconnect();
-                expect(subProcess.called).to.be.true;
-                expect(dockerEventsListener._subprocess).to.be.null;
+                expect(subProcess).toHaveBeenCalled();
+                expect(dockerEventsListener._subprocess).toBeNull();
             });
         });
 
-        context('when sub-process is not connected', function () {
+        describe('when sub-process is not connected', function () {
             it('must not call disconnect on sub-process', function () {
-                const subProcess = dockerEventsListener._subprocess!.disconnect as unknown as SinonStub;
+                const subProcess = dockerEventsListener._subprocess!.disconnect as unknown as MockInstance;
 
                 dockerEventsListener._subprocess!.connected = false;
                 dockerEventsListener.disconnect();
-                expect(subProcess.called).to.be.false;
-                expect(dockerEventsListener._subprocess).to.be.null;
+                expect(subProcess).not.toHaveBeenCalled();
+                expect(dockerEventsListener._subprocess).toBeNull();
             });
         });
     });
 
     describe('#_onMessage', function () {
-        let forkStub: SinonStub;
+        let forkStub: MockInstance;
         beforeEach(function () {
-            forkStub = stub().callsFake((module) => {
+            forkStub = vi.fn().mockImplementation((module) => {
                 return new MockForkedProcess(module);
             });
 
-            dockerEventsListener = new DockerEventsListener(Logger, forkStub);
+            dockerEventsListener = new DockerEventsListener(Logger, forkStub as any);
             dockerEventsListener.connect();
         });
 
-        context('when message is an error', function () {
-            let spyOnError: SinonSpy<Parameters<typeof DockerEventsListener.prototype._onError>>;
-            let spyDisconnect: SinonSpy<Parameters<typeof DockerEventsListener.prototype.disconnect>>;
+        describe('when message is an error', function () {
+            let spyOnError: MockInstance;
+            let spyDisconnect: MockInstance;
 
             beforeEach(function () {
-                spyOnError = spy(dockerEventsListener, '_onError');
-                spyDisconnect = spy(dockerEventsListener, 'disconnect');
+                spyOnError = vi.spyOn(dockerEventsListener, '_onError');
+                spyDisconnect = vi.spyOn(dockerEventsListener, 'disconnect');
             });
 
             it('must forward call to #_onError', function () {
@@ -147,22 +142,22 @@ describe('DockerEventsListener', function () {
                     type: 'error',
                     message: 'Error message',
                 });
-                expect(spyOnError.called).to.be.true;
-                expect(spyDisconnect.called).to.be.true;
+                expect(spyOnError).toHaveBeenCalled();
+                expect(spyDisconnect).toHaveBeenCalled();
             });
         });
 
-        context('when message is a valid Docker type', function () {
-            let spyEmit: SinonSpy<Parameters<typeof DockerEventsListener.prototype.emit>>;
+        describe('when message is a valid Docker type', function () {
+            let spyEmit: MockInstance;
 
             beforeEach(function () {
-                spy(dockerEventsListener, '_onMessage');
-                spyEmit = spy(dockerEventsListener, 'emit');
+                vi.spyOn(dockerEventsListener, '_onMessage');
+                spyEmit = vi.spyOn(dockerEventsListener, 'emit');
             });
 
             it('must fire an event', function () {
                 dockerEventsListener._subprocess?.mockMessage(MockDockerEvent);
-                expect(spyEmit.calledWith(MockDockerEvent.type, MockDockerEvent)).to.be.true;
+                expect(spyEmit).toHaveBeenCalledWith(MockDockerEvent.type, MockDockerEvent);
             });
         });
     });

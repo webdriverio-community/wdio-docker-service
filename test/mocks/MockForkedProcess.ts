@@ -1,5 +1,5 @@
 import { ChildProcess } from 'child_process';
-import { spy, stub } from 'sinon';
+import { vi } from 'vitest';
 
 class MockForkedProcess extends ChildProcess {
     connected: boolean;
@@ -12,8 +12,8 @@ class MockForkedProcess extends ChildProcess {
         this.connected = true;
         this.module = module;
         this.pid = Math.random() * 1000;
-        this.send = spy();
-        this.disconnect = stub().callsFake(() => {
+        this.send = vi.fn();
+        this.disconnect = vi.fn().mockImplementation(() => {
             this.connected = false;
         });
     }

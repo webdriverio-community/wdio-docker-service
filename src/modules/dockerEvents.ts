@@ -20,8 +20,15 @@ type EventData = {
     Type: string;
 };
 
+export interface ProcessLike {
+    connected?: boolean;
+    send?(message: any): boolean;
+    on(event: string, listener: (...args: any[]) => void): any;
+}
+
 const DockerEvents = {
     process: null as ChildProcess | null,
+    parentProcess: process as ProcessLike,
     /**
      * @param {Object} [options]
      */
@@ -59,7 +66,7 @@ const DockerEvents = {
         ps.on('exit', (code) => this._onExit(code || 0, cmd, errorMessage));
 
         //Handle forked process disconnect
-        process.on('disconnect', () => this._onDisconnect());
+        this.parentProcess.on('disconnect', () => this._onDisconnect());
 
         this.process = ps;
     },
@@ -76,8 +83,8 @@ const DockerEvents = {
      * @private
      */
     _onExit(code: number, cmd: string, errorMsg: string) {
-        if (code !== 0 && process.connected) {
-            process.send?.({
+        if (code !== 0 && this.parentProcess.connected) {
+            this.parentProcess.send?.({
                 type: 'error',
                 message: `Error executing sub-child: ${cmd}${
                     errorMsg ? `\n${errorMsg}` : ''
@@ -108,8 +115,8 @@ const DockerEvents = {
             status.indexOf(':') !== -1
                 ? status.slice(status.indexOf(':') + 1).trim()
                 : '';
-        if (process.connected) {
-            process.send?.({
+        if (this.parentProcess.connected) {
+            this.parentProcess.send?.({
                 args,
                 image: from,
                 timeStamp: new Date(timeNano / NANOSECONDS),

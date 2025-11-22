@@ -1,14 +1,15 @@
 import { Readable } from 'stream';
-import { spy, SinonSpy } from 'sinon';
-import { ChildProcess, spawn } from 'child_process';
+import { EventEmitter } from 'events';
+import { vi } from 'vitest';
+import { spawn } from 'child_process';
 
-class MockChildProcess extends ChildProcess {
+class MockChildProcess extends EventEmitter {
     cmd: Parameters<typeof spawn>['0'];
     args?: Parameters<typeof spawn>['1'];
     opts?: Parameters<typeof spawn>['2'];
     stdout: Readable;
     stderr: Readable;
-    kill: SinonSpy;
+    kill: any; 
 
     constructor(
         cmd: Parameters<typeof spawn>['0'], 
@@ -21,19 +22,12 @@ class MockChildProcess extends ChildProcess {
         this.args = [...args];
         this.opts = options;
 
-        this.stdout = new Readable({
-            read() {
-                this.push(null);
-            }
-        });
+        this.stdout = new EventEmitter() as any;
+        this.stdout.setEncoding = vi.fn();
 
-        this.stderr = new Readable({
-            read() {
-                this.push(null);
-            }
-        });
+        this.stderr = new EventEmitter() as any;
 
-        this.kill = spy();
+        this.kill = vi.fn();
     }
 
     mockError(error = 'mock error') {

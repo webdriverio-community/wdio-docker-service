@@ -1,8 +1,8 @@
-import { expect } from 'chai';
+import { describe, it, expect } from 'vitest';
 import deepMerge from '@root/utils/deepMerge.js';
 
 describe('#deepMerge', function () {
-    context('when a single plain object source is provided', function () {
+    describe('when a single plain object source is provided', function () {
         const source = {
             foo: 'bar'
         };
@@ -11,14 +11,14 @@ describe('#deepMerge', function () {
         };
 
         it('must merge source with destination', function () {
-            expect(deepMerge(dest, source)).to.deep.equal({
+            expect(deepMerge(dest, source)).toEqual({
                 foo: 'bar',
                 bar: 'foo'
             });
         });
     });
 
-    context('when multiple source objects are provided', function () {
+    describe('when multiple source objects are provided', function () {
         const source1 = {
             foo: 'bar'
         };
@@ -32,7 +32,7 @@ describe('#deepMerge', function () {
         };
 
         it('must merge sources with destination', function () {
-            expect(deepMerge(dest, source1, source2)).to.deep.equal({
+            expect(deepMerge(dest, source1, source2)).toEqual({
                 foo: 'bar',
                 foo2: 'bar2',
                 bar: 'foo'
@@ -40,7 +40,7 @@ describe('#deepMerge', function () {
         });
     });
 
-    context('when both source and destination have nested objects', function () {
+    describe('when both source and destination have nested objects', function () {
         const source = {
             foo: {
                 child1: 'bar'
@@ -53,7 +53,7 @@ describe('#deepMerge', function () {
         };
 
         it('must merge nested properties of source and destination', function () {
-            expect(deepMerge(dest, source)).to.deep.equal({
+            expect(deepMerge(dest, source)).toEqual({
                 foo: {
                     child1: 'bar',
                     child2: 'foo'
@@ -62,7 +62,7 @@ describe('#deepMerge', function () {
         });
     });
 
-    context('when both source and destination have Array property', function () {
+    describe('when both source and destination have Array property', function () {
         const source = {
             children: ['foo']
         };
@@ -71,7 +71,7 @@ describe('#deepMerge', function () {
         };
 
         it('must merge nested properties of source and destination', function () {
-            expect(deepMerge(dest, source)).to.deep.equal({
+            expect(deepMerge(dest, source)).toEqual({
                 children: ['bar', 'foo']
             });
         });

@@ -1,50 +1,50 @@
-import { expect } from 'chai';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { sanitizeValue, serializeOption, serializeOptions } from '@root/utils/optionsSerializer.js';
 
 describe('Options Serializer', function() {
     describe('#serializeOption', function() {
         describe('when a single letter option', function() {
-            context('and is a boolean', function() {
+            describe('and is a boolean', function() {
                 it('must serialize correctly', function() {
                     const option = serializeOption('d', true);
-                    expect(option).to.eql(['-d']);
+                    expect(option).toEqual(['-d']);
                 });
             });
 
-            context('and is a string', function() {
+            describe('and is a string', function() {
                 it('must serialize correctly', function() {
                     const option = serializeOption('d', 'boo');
-                    expect(option).to.eql(['-d', 'boo']);
+                    expect(option).toEqual(['-d', 'boo']);
                 });
             });
 
-            context('and is an array', function() {
+            describe('and is an array', function() {
                 it('must serialize correctly', function() {
                     const option = serializeOption('d', ['foo=bar', 'bar=foo']);
-                    expect(option).to.eql(['-d', 'foo=bar', '-d', 'bar=foo']);
+                    expect(option).toEqual(['-d', 'foo=bar', '-d', 'bar=foo']);
                 });
             });
         });
 
         describe('when multiple-letter option', function() {
-            context('and is a boolean', function() {
+            describe('and is a boolean', function() {
                 it('must serialize correctly', function() {
                     const option = serializeOption('foo', true);
-                    expect(option).to.eql(['--foo']);
+                    expect(option).toEqual(['--foo']);
                 });
             });
 
-            context('and is a string', function() {
+            describe('and is a string', function() {
                 it('must serialize correctly', function() {
                     const option = serializeOption('foo', 'boo');
-                    expect(option).to.eql(['--foo', 'boo']);
+                    expect(option).toEqual(['--foo', 'boo']);
                 });
             });
 
-            context('and is an array', function() {
+            describe('and is an array', function() {
                 it('must serialize correctly', function() {
                     const option = serializeOption('doo', ['foo=bar', 'bar=foo']);
-                    expect(option).to.eql(['--doo', 'foo=bar', '--doo', 'bar=foo']);
+                    expect(option).toEqual(['--doo', 'foo=bar', '--doo', 'bar=foo']);
                 });
             });
         });
@@ -59,7 +59,7 @@ describe('Options Serializer', function() {
                 e: ['123=345', '678=901']
             };
 
-            expect(serializeOptions(options)).to.deep.equal([
+            expect(serializeOptions(options)).toEqual([
                 '-d',
                 '--foo',
                 '--boo', 'bop',
@@ -70,16 +70,16 @@ describe('Options Serializer', function() {
     });
 
     describe('#sanitizeValue', function() {
-        context('when value is not a string', function() {
+        describe('when value is not a string', function() {
             it('must preserve value as is', function() {
-                expect(sanitizeValue(true)).to.eql(true);
-                expect(sanitizeValue(1)).to.eql(1);
-                expect(sanitizeValue([1])).to.eql([1]);
+                expect(sanitizeValue(true)).toEqual(true);
+                expect(sanitizeValue(1)).toEqual(1);
+                expect(sanitizeValue([1])).toEqual([1]);
             });
         });
 
-        context('when value is string', function() {
-            context('when platform is win32', function() {
+        describe('when value is string', function() {
+            describe('when platform is win32', function() {
                 let originalPlatformGetter: PropertyDescriptor;
 
                 beforeEach(function() {
@@ -94,11 +94,11 @@ describe('Options Serializer', function() {
                 });
 
                 it('must leave string value as is', function() {
-                    expect(sanitizeValue('/this is it/')).to.eql('/this is it/');
+                    expect(sanitizeValue('/this is it/')).toEqual('/this is it/');
                 });
             });
 
-            context('when platform is NOT win32', function() {
+            describe('when platform is NOT win32', function() {
                 let originalPlatformGetter: PropertyDescriptor;
 
                 beforeEach(function() {
@@ -113,7 +113,7 @@ describe('Options Serializer', function() {
                 });
 
                 it('must escape spaces in value', function() {
-                    expect(sanitizeValue('/this is it/')).to.eql('/this\\ is\\ it/');
+                    expect(sanitizeValue('/this is it/')).toEqual('/this\\ is\\ it/');
                 });
             });
         });

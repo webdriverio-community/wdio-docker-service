@@ -1,106 +1,135 @@
-import { expect } from 'chai';
-import { stub, spy, createSandbox, SinonStub, SinonSpy, SinonSandbox } from 'sinon';
-import ChildProcess from 'child_process';
-import DockerEvents from '@root/modules/dockerEvents.js';
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach, MockInstance } from 'vitest';
 import MockChildProcess from '@test/mocks/MockChildProcess.js';
 import MockRawDockerEvent from '@test/mocks/MockRawDockerEvent.json';
+import type { ProcessLike } from '@root/modules/dockerEvents.js';
+
+const mocks = vi.hoisted(() => ({
+    exec: vi.fn().mockReturnValue({
+        stdout: { setEncoding: vi.fn(), on: vi.fn() },
+        stderr: { on: vi.fn() },
+        on: vi.fn(),
+        kill: vi.fn()
+    }),
+}));
+
+// Mock child_process
+vi.mock('child_process', () => ({
+    exec: mocks.exec,
+    ChildProcess: vi.fn(),
+    default: { exec: mocks.exec }
+}));
 
 describe('DockerEvents module', function () {
-    let sandbox: SinonSandbox;
-    let stubbedExec: SinonStub<Parameters<typeof ChildProcess['exec']>>;
+    let DockerEvents: typeof import('@root/modules/dockerEvents.js').default;
+    let stubbedExec: MockInstance;
+
+    beforeAll(async () => {
+        // Prevent DockerEvents from attaching a message listener to the global process
+        const spy = vi.spyOn(process, 'on').mockImplementation((event, listener) => {
+            if (event === 'message') {
+                return process;
+            }
+            return process;
+        });
+
+        // Import the module dynamically
+        DockerEvents = (await import('@root/modules/dockerEvents.js')).default;
+
+        // Restore process.on
+        spy.mockRestore();
+    });
 
     beforeEach(function () {
-        sandbox = createSandbox();
-        stubbedExec = sandbox.stub(ChildProcess, 'exec').callsFake(cmd => {
+        stubbedExec = mocks.exec.mockImplementation((cmd) => {
+            console.log('Mock exec called with:', cmd);
             return new MockChildProcess(cmd);
         });
     });
 
     afterEach(function () {
-        sandbox.restore();
+        vi.restoreAllMocks();
     });
 
     describe('#init', function () {
         const cmd = 'docker events --format "{{json .}}"';
 
-        context('when calling w/o options', function () {
+        describe('when calling w/o options', function () {
             it('must start sub-process with default command', function () {
                 DockerEvents.init().then(() => {
-                    expect(stubbedExec.calledWith(cmd)).equal(true);
+                    expect(stubbedExec).toHaveBeenCalledWith(cmd);
                 });
             });
         });
 
-        context('when calling with options', function () {
+        describe('when calling with options', function () {
             it('must start sub-process with optional flags', function () {
                 DockerEvents.init({ foo: 'bar' }).then(() => {
-                    expect(stubbedExec.calledWith(`${ cmd } --foo bar`)).to.be.true;
+                    expect(stubbedExec).toHaveBeenCalledWith(`${ cmd } --foo bar`);
                 });
             });
         });
 
-        context('when data is received from stdout', function () {
-            let tryParseSpy: SinonSpy<Parameters<typeof DockerEvents['_tryParse']>>;
-            let parseEventDataSpy: SinonSpy<Parameters<typeof DockerEvents['_parseEventData']>>;
+        describe('when data is received from stdout', function () {
+            let tryParseSpy: MockInstance;
+            let parseEventDataSpy: MockInstance;
             beforeEach(function () {
-                tryParseSpy = spy(DockerEvents, '_tryParse');
-                parseEventDataSpy = spy(DockerEvents, '_parseEventData');
+                DockerEvents.init();
+                tryParseSpy = vi.spyOn(DockerEvents, '_tryParse');
+                parseEventDataSpy = vi.spyOn(DockerEvents, '_parseEventData');
             });
 
             afterEach(function () {
-                tryParseSpy.restore();
-                parseEventDataSpy.restore();
+                tryParseSpy.mockRestore();
+                parseEventDataSpy.mockRestore();
             });
 
             it('must try to parse it', function () {
                 DockerEvents.process?.stdout?.emit('data', JSON.stringify(MockRawDockerEvent));
-                expect(tryParseSpy.called).to.be.true;
-                expect(parseEventDataSpy.called).to.be.true;
+                expect(tryParseSpy).toHaveBeenCalled();
+                expect(parseEventDataSpy).toHaveBeenCalled();
             });
         });
 
-        context('when process exits', function () {
-            let onExitStub: SinonStub<Parameters<typeof DockerEvents['_onExit']>>;
+        describe('when process exits', function () {
+            let onExitStub: MockInstance;
 
             beforeEach(function () {
-                onExitStub = stub(DockerEvents, '_onExit');
+                onExitStub = vi.spyOn(DockerEvents, '_onExit');
             });
 
             afterEach(function () {
-                onExitStub.restore();
+                onExitStub.mockRestore();
             });
 
             it('must call #_onExit', function () {
                 DockerEvents.process?.emit('exit', 125);
-                expect(onExitStub.called).to.be.true;
+                expect(onExitStub).toHaveBeenCalled();
             });
         });
 
-        context('when process disconnects', function () {
-            let onDisconnectStub: SinonStub<Parameters<typeof DockerEvents['_onDisconnect']>>;
+        describe('when process disconnects', function () {
+            let onDisconnectStub: MockInstance;
             
             beforeEach(function () {
-                onDisconnectStub = stub(DockerEvents, '_onDisconnect');
+                onDisconnectStub = vi.spyOn(DockerEvents, '_onDisconnect');
             });
 
             afterEach(function () {
-                onDisconnectStub.restore();
+                onDisconnectStub.mockRestore();
             });
 
             it('must call #_onDisconnect', function () {
                 process.emit('disconnect');
-                expect(onDisconnectStub.called).to.be.true;
+                expect(onDisconnectStub).toHaveBeenCalled();
             });
         });
     });
 
     describe('#_onDisconnect', function () {
-        let killSpy: SinonSpy<Parameters<NonNullable<typeof DockerEvents['process']>['kill']>>;
-        let sandbox: SinonSandbox;
+        let killSpy: MockInstance;
 
         beforeEach(function () {
-            sandbox = createSandbox();
-            killSpy = sandbox.stub();
+            killSpy = vi.fn();
             DockerEvents.process = {
                 kill: killSpy
             } as unknown as typeof DockerEvents['process'];
@@ -108,70 +137,68 @@ describe('DockerEvents module', function () {
 
         it('must kill sub-process', function () {
             DockerEvents._onDisconnect();
-            expect(killSpy.called).to.be.true;
-            expect(DockerEvents.process).to.be.null;
+            expect(killSpy).toHaveBeenCalled();
+            expect(DockerEvents.process).toBeNull();
         });
     });
 
     describe('#_onExit', function () {
-        let sendMock: SinonSpy;
-        let sandbox: SinonSandbox;
+        let sendMock: MockInstance;
+        let originalParentProcess: ProcessLike;
 
         beforeEach(() => {
-            sandbox = createSandbox();
-            sendMock = sandbox.stub();
-            global.process = {
-                ...global.process,
-                send: sendMock,
+            originalParentProcess = DockerEvents.parentProcess;
+            sendMock = vi.fn();
+            DockerEvents.parentProcess = {
                 connected: true,
-            } as unknown as typeof global.process;
+                send: sendMock as unknown as ProcessLike['send'],
+                on: vi.fn()
+            };
         });
 
         afterEach(() => {
-            global.process.send = undefined;
-            sandbox.restore();
+            DockerEvents.parentProcess = originalParentProcess;
         });
 
-        context('when called with Error code', function () {
+        describe('when called with Error code', function () {
             it('must send error to parent process', function () {
                 DockerEvents._onExit(125, 'foo', '');
-                expect(sendMock.calledWith({
+                expect(sendMock).toHaveBeenCalledWith({
                     type: 'error',
                     message: 'Error executing sub-child: foo'
-                })).equal(true);
+                });
             });
         });
 
-        context('when process exits with code 0', function () {
+        describe('when process exits with code 0', function () {
             it('must do nothing', function () {
                 DockerEvents._onExit(0, '', '');
-                expect(sendMock.called).equal(false);
+                expect(sendMock).not.toHaveBeenCalled();
             });
         });
     });
 
     describe('#_parseEventData', function () {
-        let sendMock: SinonSpy;
-        let sandbox: SinonSandbox;
+        let sendMock: MockInstance;
+        let originalParentProcess: ProcessLike;
 
         beforeEach(() => {
-            sandbox = createSandbox();
-            sendMock = sandbox.stub();
-            global.process = {
-                ...global.process,
-                send: sendMock,
+            originalParentProcess = DockerEvents.parentProcess;
+            sendMock = vi.fn();
+            DockerEvents.parentProcess = {
                 connected: true,
-            } as unknown as typeof global.process;
+                send: sendMock as unknown as ProcessLike['send'],
+                on: vi.fn()
+            };
         });
 
         afterEach(() => {
-            global.process.send = undefined;
-            sandbox.restore();
+            DockerEvents.parentProcess = originalParentProcess;
         });
 
         it('must extract data from JSON and send data to parent', function () {
             DockerEvents._parseEventData(MockRawDockerEvent);
-            expect(sendMock.calledWith({
+            expect(sendMock).toHaveBeenCalledWith({
                 args: '',
                 image: MockRawDockerEvent.from,
                 timeStamp: new Date(MockRawDockerEvent.timeNano / 1000000),
@@ -182,22 +209,22 @@ describe('DockerEvents module', function () {
                     scope: MockRawDockerEvent.scope,
                     actor: MockRawDockerEvent.Actor
                 }
-            })).equal(true);
+            });
         });
     });
 
     describe('#_tryParse', function () {
-        context('when data is NOT JSON', function () {
+        describe('when data is NOT JSON', function () {
             it('must return null', function () {
                 const testValue = DockerEvents._tryParse('foo');
-                expect(testValue).to.be.null;
+                expect(testValue).toBeNull();
             });
         });
 
-        context('when data is JSON', function () {
+        describe('when data is JSON', function () {
             it('must return JSON', function () {
                 const testValue = DockerEvents._tryParse(JSON.stringify(MockRawDockerEvent));
-                expect(testValue).to.eql(MockRawDockerEvent);
+                expect(testValue).toEqual(MockRawDockerEvent);
             });
         });
     });

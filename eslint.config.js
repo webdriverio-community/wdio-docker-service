@@ -1,8 +1,8 @@
 import eslint from '@eslint/js';
+import wdioEslint from '@wdio/eslint';
 import tslint from 'typescript-eslint';
-import globals from 'globals';
 
-export default tslint.config(
+export default wdioEslint.config(
     eslint.configs.recommended,
     ...tslint.configs.recommended,
     { 

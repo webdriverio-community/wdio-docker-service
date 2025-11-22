@@ -1,9 +1,59 @@
-import { expect } from 'chai';
-import { stub, spy, createSandbox, SinonStub, SinonSpy, SinonSandbox } from 'sinon';
+import { describe, it, expect, beforeEach, afterEach, vi, MockInstance } from 'vitest';
 import { DockerLauncherForTests as DockerLauncher, DockerLauncherConfig } from '@root/launcher.js';
 import Docker from '@root/utils/docker.js';
 
-describe('DockerLauncher', async function () {
+vi.mock('@root/utils/docker.js', () => {
+    class Docker {
+        image: string;
+        args: string | undefined;
+        command: string | undefined;
+        healthCheck: any;
+        options: any;
+        debug: boolean;
+        cidfile: string;
+        listeners: Record<string, any> = {};
+
+        constructor(image: string, { options = {}, healthCheck = {}, command, args, debug = false }: { options?: Record<string, any>, healthCheck?: string | { url: string } | Record<string, never>, command?: string, args?: string, debug?: boolean } = {}) {
+            this.image = image;
+            this.args = args;
+            this.command = command;
+            this.debug = debug;
+            this.healthCheck = typeof healthCheck === 'string' ? { url: healthCheck } : healthCheck;
+            this.cidfile = 'mock-cid-file';
+            this.options = {
+                rm: true,
+                cidfile: this.cidfile,
+                ...options
+            };
+        }
+
+        run() { return Promise.resolve(null); }
+        stop() { return Promise.resolve(null); }
+        on(event: string, cb: (...args: any[]) => void) {}
+        once(event: string, cb: (...args: any[]) => void) { this.listeners[event] = cb; }
+        emit(event: string) { if (this.listeners[event]) this.listeners[event](); }
+        removeListener(event: string, cb: (...args: any[]) => void) {}
+        removeAllListeners() {}
+    }
+
+    Docker.prototype.run = vi.fn().mockResolvedValue(null);
+    Docker.prototype.stop = vi.fn().mockResolvedValue(null);
+    Docker.prototype.on = vi.fn();
+    Docker.prototype.once = vi.fn().mockImplementation(function(this: Docker, event: string, cb: (...args: any[]) => void) {
+        this.listeners[event] = cb;
+    });
+    Docker.prototype.emit = vi.fn().mockImplementation(function(this: Docker, event: string) {
+        if (this.listeners[event]) {
+            this.listeners[event]();
+        }
+    });
+    Docker.prototype.removeListener = vi.fn();
+    Docker.prototype.removeAllListeners = vi.fn();
+
+    return { default: Docker };
+});
+
+describe('DockerLauncher', function () {
     let launcher: typeof DockerLauncher.prototype;
 
     beforeEach(function () {
@@ -12,36 +62,37 @@ describe('DockerLauncher', async function () {
 
     afterEach(function () {
         launcher.onComplete();
+        vi.restoreAllMocks();
     });
 
     describe('#constructor', function () {
         it('must initialize class properties', function () {
-            expect(launcher.docker).to.eql(null);
-            expect(launcher.dockerLogs).to.eql(null);
-            expect(launcher.logToStdout).to.eql(false);
+            expect(launcher.docker).toEqual(null);
+            expect(launcher.dockerLogs).toEqual(null);
+            expect(launcher.logToStdout).toEqual(false);
         });
     });
 
     describe('#onPrepare', function () {
         describe('@dockerOptions', function () {
-            context('when dockerOptions.image is not provided', function () {
+            describe('when dockerOptions.image is not provided', function () {
                 // @ts-expect-error - Testing invalid config
                 const dockerOptions: DockerLauncherConfig['dockerOptions'] = {};
 
                 it('must reject with error', async function () {
                     try {
                         // @ts-expect-error - Testing invalid config
-                        return await launcher.onPrepare({ dockerOptions });
+                        await launcher.onPrepare({ dockerOptions });
                     } catch (err) {
-                        expect(err).to.be.instanceOf(Error);
-                        expect((err as Error).message).to.eql(
+                        expect(err).toBeInstanceOf(Error);
+                        expect((err as Error).message).toEqual(
                             'dockerOptions.image is a required property'
                         );
                     }
                 });
             });
 
-            context('when dockerOptions.image is provided', function () {
+            describe('when dockerOptions.image is provided', function () {
                 it('must run docker', async function () {
                     const dockerOptions: DockerLauncherConfig['dockerOptions'] = {
                         image: 'hello-world',
@@ -49,12 +100,12 @@ describe('DockerLauncher', async function () {
 
                     // @ts-expect-error - Testing invalid config
                     await launcher.onPrepare({ dockerOptions, logLevel: 'error' });
-                    expect(launcher.docker).to.be.instanceOf(Docker);
-                    expect(launcher.docker?.image).to.eql('hello-world');
+                    expect(launcher.docker).toBeInstanceOf(Docker);
+                    expect(launcher.docker?.image).toEqual('hello-world');
                 });
             });
 
-            context('when dockerOptions.args is provided', function () {
+            describe('when dockerOptions.args is provided', function () {
                 it('must run docker with args', async function () {
                     const dockerOptions: DockerLauncherConfig['dockerOptions'] = {
                         image: 'hello-world',
@@ -66,11 +117,11 @@ describe('DockerLauncher', async function () {
                         capabilities: [],
                         logLevel: 'error'
                     });
-                    expect(launcher.docker?.args).to.eql('-foo');
+                    expect(launcher.docker?.args).toEqual('-foo');
                 });
             });
 
-            context('when dockerOptions.command is provided', function () {
+            describe('when dockerOptions.command is provided', function () {
                 it('must run docker with command', async function () {
                     const dockerOptions: DockerLauncherConfig['dockerOptions'] = {
                         image: 'hello-world',
@@ -82,31 +133,29 @@ describe('DockerLauncher', async function () {
                         capabilities: [],
                         logLevel: 'error'
                     });
-                    expect(launcher.docker?.command).to.eql('/bin/bash');
+                    expect(launcher.docker?.command).toEqual('/bin/bash');
                 });
             });
 
-            context('when dockerOptions.healthCheck is provided', function () {
-                it('must run docker with healthCheck', function () {
+            describe('when dockerOptions.healthCheck is provided', function () {
+                it('must run docker with healthCheck', async function () {
                     const dockerOptions: DockerLauncherConfig['dockerOptions'] = {
                         image: 'hello-world',
                         healthCheck: 'http://localhost:8000',
                     };
 
-                    // Consider moving this to async/await but ensure expect can be called after the promise resolves
-                    launcher.onPrepare({
+                    await launcher.onPrepare({
                         dockerOptions,
                         capabilities: [],
                         logLevel: 'error'
-                    }).then(() => {
-                        expect(launcher.docker?.healthCheck).eql({
-                            url: 'http://localhost:8000',
-                        });
+                    });
+                    expect(launcher.docker?.healthCheck).toEqual({
+                        url: 'http://localhost:8000',
                     });
                 });
             });
 
-            context('when dockerOptions.options are provided', function () {
+            describe('when dockerOptions.options are provided', function () {
                 it('must run docker with options', async function () {
                     const dockerOptions: DockerLauncherConfig['dockerOptions'] = {
                         image: 'hello-world',
@@ -120,7 +169,7 @@ describe('DockerLauncher', async function () {
                         capabilities: [],
                         logLevel: 'error'
                     });
-                    expect(launcher.docker?.options).to.deep.equal({
+                    expect(launcher.docker?.options).toEqual({
                         rm: true,
                         e: ['TEST=ME'],
                         cidfile: launcher.docker?.cidfile,
@@ -128,7 +177,7 @@ describe('DockerLauncher', async function () {
                 });
             });
 
-            context('when logLevel is set to debug', function () {
+            describe('when logLevel is set to debug', function () {
                 it('must set debug property of Docker to true', async function () {
                     const dockerOptions: DockerLauncherConfig['dockerOptions'] = {
                         image: 'hello-world',
@@ -139,27 +188,25 @@ describe('DockerLauncher', async function () {
                         logLevel: 'debug',
                         capabilities: [],
                     });
-                    expect(launcher.docker?.debug).to.be.true;
+                    expect(launcher.docker?.debug).toBe(true);
                 });
             });
         });
 
         describe('@dockerLogs', function () {
-            let stubRedirectLogStream: SinonStub<
-                Parameters<typeof DockerLauncher.prototype._redirectLogStream>
-            >;
+            let stubRedirectLogStream: MockInstance;
             beforeEach(function () {
-                stubRedirectLogStream = stub(
+                stubRedirectLogStream = vi.spyOn(
                     DockerLauncher.prototype,
                     '_redirectLogStream'
-                );
+                ).mockImplementation(() => Promise.resolve());
             });
 
             afterEach(function () {
-                stubRedirectLogStream.restore();
+                stubRedirectLogStream.mockRestore();
             });
 
-            context('when not set', function () {
+            describe('when not set', function () {
                 it('must not redirect log stream', async function () {
                     const config: DockerLauncherConfig = {
                         dockerOptions: {
@@ -170,11 +217,11 @@ describe('DockerLauncher', async function () {
                     };
 
                     await launcher.onPrepare(config);
-                    expect(stubRedirectLogStream.called).to.eql(false);
+                    expect(stubRedirectLogStream).not.toHaveBeenCalled();
                 });
             });
 
-            context('when set to string', function () {
+            describe('when set to string', function () {
                 it('must redirect log stream', async function () {
                     const config: DockerLauncherConfig = {
                         dockerLogs: './',
@@ -187,22 +234,20 @@ describe('DockerLauncher', async function () {
 
                     await launcher.onPrepare(config);
                     launcher.docker?.emit('processCreated');
-                    expect(stubRedirectLogStream.called).to.eql(true);
+                    expect(stubRedirectLogStream).toHaveBeenCalled();
                 });
             });
         });
 
         describe('@onDockerReady', function () {
-            let sandbox: SinonSandbox;
-            let onDockerReady: SinonSpy;
+            let onDockerReady: MockInstance;
             let config: DockerLauncherConfig;
 
             beforeEach(function () {
-                sandbox = createSandbox();
-                onDockerReady = sandbox.spy();
-                sandbox.stub(Docker.prototype, 'run').resolves();
+                onDockerReady = vi.fn();
+                // Docker.prototype.run is already mocked by vi.mock
                 config = {
-                    onDockerReady,
+                    onDockerReady: onDockerReady as unknown as () => void,
                     dockerOptions: {
                         image: 'hello-world',
                     },
@@ -211,29 +256,29 @@ describe('DockerLauncher', async function () {
                 };
             });
 
-            afterEach(function () {
-                sandbox.restore();
-            });
-
-            context('when onDockerReady is provided', function () {
+            describe('when onDockerReady is provided', function () {
                 it('must call onDockerReady', async function () {
                     await launcher.onPrepare(config);
-                    expect(onDockerReady.called).eq(true);
+                    expect(onDockerReady).toHaveBeenCalled();
                 });
             });
 
-            context('when docker run is rejected', function () {
+            describe('when docker run is rejected', function () {
                 beforeEach(function () {
-                    // Override the stub for this context
-                    (Docker.prototype.run as SinonStub).rejects(new Error('Fail'));
+                    // Override the mock for this context
+                    (Docker.prototype.run as unknown as MockInstance).mockRejectedValue(new Error('Fail'));
                     config.logLevel = 'silent';
+                });
+
+                afterEach(function () {
+                    (Docker.prototype.run as unknown as MockInstance).mockResolvedValue(undefined);
                 });
 
                 it('must NOT call onDockerReady', async function () {
                     try {
                         await launcher.onPrepare(config);
                     } catch {
-                        expect(onDockerReady.called).equal(false);
+                        expect(onDockerReady).not.toHaveBeenCalled();
                     }
                 });
             });
@@ -241,43 +286,35 @@ describe('DockerLauncher', async function () {
     });
 
     describe('#onComplete', function () {
-        let sandbox: SinonSandbox;
-        let spyStop: SinonSpy;
+        let spyStop: MockInstance;
 
         beforeEach(function () {
-            sandbox = createSandbox();
-            spyStop = sandbox.stub();
+            spyStop = vi.fn();
             // @ts-expect-error - Hacking to test private property
             launcher.docker = { stop: spyStop } as unknown as Docker;
         });
 
-        afterEach(function () {
-            sandbox.restore();
-        });
-
-        context('when this.docker is present', function () {
+        describe('when this.docker is present', function () {
             it('must call this.docker.stop', function () {
                 launcher.onComplete();
-                expect(spyStop.called).equal(true);
+                expect(spyStop).toHaveBeenCalled();
             });
         });
 
-        context('when this.watchMode is present', function () {
+        describe('when this.watchMode is present', function () {
             it('must not call this.docker.stop', function () {
                 launcher.watchMode = true;
                 launcher.onComplete();
-                expect(spyStop.called).to.eql(false);
+                expect(spyStop).not.toHaveBeenCalled();
             });
         });
     });
 
     describe('#afterSession', function () {
-        let sandbox: SinonSandbox;
-        let spyStop: SinonSpy;
+        let spyStop: MockInstance;
 
         beforeEach(function () {
-            sandbox = createSandbox();
-            spyStop = sandbox.stub();
+            spyStop = vi.fn();
             // @ts-expect-error - Hacking for testing purposes
             launcher.docker = { 
                 stop: spyStop,
@@ -285,14 +322,10 @@ describe('DockerLauncher', async function () {
             } as unknown as Docker;
         });
 
-        afterEach(function () {
-            sandbox.restore();
-        });
-
-        context('when this.docker is present', function () {
+        describe('when this.docker is present', function () {
             it('must call this.docker.stop', function () {
                 launcher.afterSession();
-                expect(spyStop.called).equal(true);
+                expect(spyStop).toHaveBeenCalled();
             });
         });
     });

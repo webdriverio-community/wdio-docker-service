@@ -1,73 +1,66 @@
 import path from 'path';
 import fs from 'fs-extra';
-import { expect } from 'chai';
-import { stub, spy, SinonStub, SinonSpy } from 'sinon';
-import esmock from 'esmock';
+import { describe, it, expect, beforeEach, afterEach, vi, MockInstance, beforeAll } from 'vitest';
 import DockerEventsListener from '@root/utils/dockerEventsListener.js';
+import { DockerForTests } from '@root/utils/docker.js';
+import * as ChildProcessUtils from '@root/utils/childProcess.js';
+import * as PingUtils from '@root/utils/ping.js';
 
-import type { DockerForTests } from '@root/utils/docker.js';
+// Mock dependencies
+vi.mock('@root/utils/childProcess.js');
+vi.mock('@root/utils/ping.js');
+vi.mock('fs-extra');
 
 describe('Docker', function () {
     const SPACE = ' ';
     let Docker: typeof DockerForTests;
-    let runProcessStub: SinonStub;
-    let runCommandStub: SinonStub;
-    let pingStub: SinonStub;
+    
+    // Access mocks
+    const runProcessMock = ChildProcessUtils.runProcess as unknown as MockInstance;
+    const runCommandMock = ChildProcessUtils.runCommand as unknown as MockInstance;
+    const pingMock = PingUtils.Ping as unknown as MockInstance;
 
-    before(async function () {
-        runProcessStub = stub();
-        runCommandStub = stub();
-        pingStub = stub();
+    beforeAll(() => {
+        Docker = DockerForTests;
+    });
 
-        const dockerModule = await esmock('../../../src/utils/docker.js', {
-            '../../../src/utils/childProcess.js': {
-                runProcess: runProcessStub,
-                runCommand: runCommandStub
-            },
-            '../../../src/utils/dockerEventsListener.js': DockerEventsListener,
-            '../../../src/utils/ping.js': {
-                Ping: pingStub
-            },
-            'fs-extra': {
-                default: fs
-            }
-        });
-        Docker = dockerModule.DockerForTests;
+    beforeEach(() => {
+        vi.resetAllMocks();
     });
 
     describe('#constructor', function () {
-        context('when image argument is not provided', function () {
+        describe('when image argument is not provided', function () {
             const tryToInstantiate = () => {
                 // @ts-expect-error Checking for error case here
                 new Docker();
             };
 
             it('must throw an error', function () {
-                expect(tryToInstantiate).to.throw();
+                expect(tryToInstantiate).toThrow();
             });
         });
 
-        context('when image argument is provided', function () {
-            context('when optional arguments are not provided', function () {
+        describe('when image argument is provided', function () {
+            describe('when optional arguments are not provided', function () {
                 it('must use defaults', function () {
                     const docker = new Docker('my-image');
                     const cidfile = path.join(process.cwd(), 'my_image.cid');
 
-                    expect(docker.args).to.eql(undefined);
-                    expect(docker.cidfile).to.eql(cidfile);
-                    expect(docker.command).to.eql(undefined);
-                    expect(docker.debug).to.eql(false);
-                    expect(docker.healthCheck).to.eql({});
-                    expect(docker.logger).to.eql(console);
-                    expect(docker.process).to.eql(null);
-                    expect(docker.options).to.eql({
+                    expect(docker.args).toEqual(undefined);
+                    expect(docker.cidfile).toEqual(cidfile);
+                    expect(docker.command).toEqual(undefined);
+                    expect(docker.debug).toEqual(false);
+                    expect(docker.healthCheck).toEqual({});
+                    expect(docker.logger).toEqual(console);
+                    expect(docker.process).toEqual(null);
+                    expect(docker.options).toEqual({
                         rm: true,
                         cidfile,
                     });
                 });
             });
 
-            context('when docker options are set', function () {
+            describe('when docker options are set', function () {
                 it('must properly translate them into a docker run command', function () {
                     const docker = new Docker('my-image', {
                         options: {
@@ -78,53 +71,53 @@ describe('Docker', function () {
                         },
                     });
 
-                    expect(docker.dockerRunCommand.join(SPACE)).to.eql(
+                    expect(docker.dockerRunCommand.join(SPACE)).toEqual(
                         `docker run --cidfile ${docker.cidfile} --rm -d -p 1234:1234 --foo bar my-image`
                     );
                 });
             });
 
-            context('when docker command argument is provided ', function () {
+            describe('when docker command argument is provided ', function () {
                 it('must place it after image name ', function () {
                     const docker = new Docker('my-image', { command: 'test' });
 
-                    expect(docker.dockerRunCommand.join(SPACE)).to.eql(
+                    expect(docker.dockerRunCommand.join(SPACE)).toEqual(
                         `docker run --cidfile ${docker.cidfile} --rm my-image test`
                     );
                 });
             });
 
-            context('when docker args argument is provided ', function () {
+            describe('when docker args argument is provided ', function () {
                 it('must place it after image name ', function () {
                     const docker = new Docker('my-image', { args: '-foo' });
 
-                    expect(docker.dockerRunCommand.join(SPACE)).to.eql(
+                    expect(docker.dockerRunCommand.join(SPACE)).toEqual(
                         `docker run --cidfile ${docker.cidfile} --rm my-image -foo`
                     );
                 });
             });
 
-            context('when both command and args arguments are provided', function () {
+            describe('when both command and args arguments are provided', function () {
                 it('must place both of them after image name where command is followed by args', function () {
                     const docker = new Docker('my-image', {
                         command: 'test',
                         args: '-foo',
                     });
-                    expect(docker.dockerRunCommand.join(SPACE)).to.eql(
+                    expect(docker.dockerRunCommand.join(SPACE)).toEqual(
                         `docker run --cidfile ${docker.cidfile} --rm my-image test -foo`
                     );
                 });
             });
 
-            context('when CWD contains spaces', function () {
-                let stubCwd: SinonStub<Parameters<typeof process.cwd>>;
+            describe('when CWD contains spaces', function () {
+                let stubCwd: MockInstance;
 
                 beforeEach(function () {
-                    stubCwd = stub(process, 'cwd').returns('/User/johndoe/test dir/');
+                    stubCwd = vi.spyOn(process, 'cwd').mockReturnValue('/User/johndoe/test dir/');
                 });
 
                 afterEach(function () {
-                    stubCwd.restore();
+                    stubCwd.mockRestore();
                 });
 
                 it('must escape cidfile path', function () {
@@ -136,28 +129,27 @@ describe('Docker', function () {
                         process.platform === 'win32'
                             ? 'docker run --cidfile \\User\\johndoe\\test dir\\my_image.cid --rm my-image test -foo'
                             : 'docker run --cidfile /User/johndoe/test\\ dir/my_image.cid --rm my-image test -foo';
-                    expect(docker.dockerRunCommand.join(SPACE)).to.eql(cmd);
+                    expect(docker.dockerRunCommand.join(SPACE)).toEqual(cmd);
                 });
             });
         });
     });
 
     describe('#stop', function () {
-        const killSpy = spy();
+        const killSpy = vi.fn();
         const mockProcess = {
             kill: killSpy,
         };
-        let stubRemoveStaleContainer: SinonStub<Parameters<typeof Docker.prototype._removeStaleContainer>>;
-        let stubDisconnect: SinonStub<Parameters<typeof DockerEventsListener.prototype.disconnect>>;
+        let stubRemoveStaleContainer: MockInstance;
+        let stubDisconnect: MockInstance;
 
         beforeEach(function () {
-            stubRemoveStaleContainer = stub(Docker.prototype, '_removeStaleContainer').resolves();
-            stubDisconnect = stub(DockerEventsListener.prototype, 'disconnect');
+            stubRemoveStaleContainer = vi.spyOn(Docker.prototype, '_removeStaleContainer').mockResolvedValue(undefined);
+            stubDisconnect = vi.spyOn(DockerEventsListener.prototype, 'disconnect');
         });
 
         afterEach(function () {
-            stubRemoveStaleContainer.restore();
-            stubDisconnect.restore();
+            vi.restoreAllMocks();
         });
 
         it('must must process', async function () {
@@ -166,100 +158,87 @@ describe('Docker', function () {
             docker.process = mockProcess;
 
             await docker.stop();
-            expect(killSpy.called).to.eql(true);
-            expect(docker.process).to.eql(null);
+            expect(killSpy).toHaveBeenCalled();
+            expect(docker.process).toEqual(null);
         });
     });
 
     describe('#run', function () {
         const mockProcess = {
             stdout: {
-                on: spy(),
+                on: vi.fn(),
             },
             stderr: {
-                on: spy(),
+                on: vi.fn(),
             },
-            kill: spy(),
+            kill: vi.fn(),
         };
 
-        let stubRemoveStaleContainer: SinonStub<Parameters<typeof Docker.prototype._removeStaleContainer>>;
-        let stubReportWhenDockerIsRunning: SinonStub<Parameters<typeof Docker.prototype._reportWhenDockerIsRunning>>;
-        let stubConnect: SinonStub<Parameters<typeof DockerEventsListener.prototype.connect>>;
+        let stubRemoveStaleContainer: MockInstance;
+        let stubReportWhenDockerIsRunning: MockInstance;
+        let stubConnect: MockInstance;
 
         beforeEach(function () {
-            runProcessStub.reset();
-            runProcessStub.resolves(mockProcess);
+            runProcessMock.mockResolvedValue(mockProcess);
             
-            stubRemoveStaleContainer = stub(Docker.prototype, '_removeStaleContainer').resolves();
-            stubReportWhenDockerIsRunning = stub(Docker.prototype, '_reportWhenDockerIsRunning').resolves();
-            stubConnect = stub(DockerEventsListener.prototype, 'connect');
+            stubRemoveStaleContainer = vi.spyOn(Docker.prototype, '_removeStaleContainer').mockResolvedValue(undefined);
+            stubReportWhenDockerIsRunning = vi.spyOn(Docker.prototype, '_reportWhenDockerIsRunning').mockResolvedValue(undefined);
+            stubConnect = vi.spyOn(DockerEventsListener.prototype, 'connect').mockImplementation(() => {});
         });
 
         afterEach(function () {
-            stubRemoveStaleContainer.restore();
-            stubReportWhenDockerIsRunning.restore();
-            stubConnect.restore();
+            vi.restoreAllMocks();
         });
 
-        context('when image is not yet pulled (first time)', function () {
-            let stubIsImagePresent: SinonStub<Parameters<typeof Docker.prototype._isImagePresent>>;
-            let stubPullImage: SinonStub<Parameters<typeof Docker.prototype._pullImage>>;
+        describe('when image is not yet pulled (first time)', function () {
+            let stubIsImagePresent: MockInstance;
+            let stubPullImage: MockInstance;
 
             beforeEach(function () {
-                stubIsImagePresent = stub(Docker.prototype, '_isImagePresent').rejects();
-                stubPullImage = stub(Docker.prototype, '_pullImage').resolves();
-            });
-
-            afterEach(function () {
-                stubIsImagePresent.restore();
-                stubPullImage.restore();
+                stubIsImagePresent = vi.spyOn(Docker.prototype, '_isImagePresent').mockRejectedValue(new Error('Not found'));
+                stubPullImage = vi.spyOn(Docker.prototype, '_pullImage').mockResolvedValue({ code: 0, stdout: '', stderr: '', command: '' });
             });
 
             it('must attempt to pull image', function () {
                 const docker = new Docker('my-image');
 
                 return docker.run().then(() => {
-                    expect(stubPullImage.called).to.eql(true);
+                    expect(stubPullImage).toHaveBeenCalled();
                 });
             });
         });
 
-        context('when image is already pulled', function () {
-            let stubIsImagePresent: SinonStub<Parameters<typeof Docker.prototype._isImagePresent>>;
-            let stubPullImage: SinonStub<Parameters<typeof Docker.prototype._pullImage>>;
+        describe('when image is already pulled', function () {
+            let stubIsImagePresent: MockInstance;
+            let stubPullImage: MockInstance;
 
             beforeEach(function () {
-                stubIsImagePresent = stub(Docker.prototype, '_isImagePresent').resolves({
+                stubIsImagePresent = vi.spyOn(Docker.prototype, '_isImagePresent').mockResolvedValue({
                     code: 0,
                     stdout: '',
                     stderr: '',
                     command: ''
                 });
-                stubPullImage = stub(Docker.prototype, '_pullImage').resolves();
-            });
-
-            afterEach(function () {
-                stubIsImagePresent.restore();
-                stubPullImage.restore();
+                stubPullImage = vi.spyOn(Docker.prototype, '_pullImage').mockResolvedValue({ code: 0, stdout: '', stderr: '', command: '' });
             });
 
             it('must just run the command', function () {
                 const docker = new Docker('my-image');
 
                 return docker.run().then(() => {
-                    expect(stubPullImage.called).to.eql(false);
-                    expect(runProcessStub.called).to.eql(true);
+                    expect(stubPullImage).not.toHaveBeenCalled();
+                    expect(runProcessMock).toHaveBeenCalled();
                 });
             });
 
             it('must emit processCreated event', function () {
-                const processCreatedSpy = spy();
+                const processCreatedSpy = vi.fn();
                 const docker = new Docker('my-image');
                 docker.on('processCreated', processCreatedSpy);
 
                 return docker.run().then(() => {
-                    expect(runProcessStub.called).to.eql(true);
-                    expect(processCreatedSpy.called).to.eql(true);
+                    expect(runProcessMock).toHaveBeenCalled();
+                    expect(processCreatedSpy).toHaveBeenCalled();
                 });
             });
         });
@@ -267,84 +246,72 @@ describe('Docker', function () {
 
     describe('#stopContainer', function () {
         beforeEach(function () {
-            runCommandStub.reset();
-            runCommandStub.resolves();
+            runCommandMock.mockResolvedValue(undefined);
         });
 
         it('must call docker command to stop running conrainer', function () {
             return Docker.stopContainer('123').then(() => {
-                expect(runCommandStub.calledWith(['docker', 'stop', '123'])).to.eql(true);
+                expect(runCommandMock).toHaveBeenCalledWith(['docker', 'stop', '123']);
             });
         });
     });
 
     describe('#removeContainer', function () {
         beforeEach(function () {
-            runCommandStub.reset();
-            runCommandStub.resolves();
+            runCommandMock.mockResolvedValue(undefined);
         });
 
         it('must call docker command to stop running container', function () {
             return Docker.removeContainer('123').then(() => {
-                expect(runCommandStub.calledWith(['docker', 'rm', '123'])).to.eql(true);
+                expect(runCommandMock).toHaveBeenCalledWith(['docker', 'rm', '123']);
             });
         });
     });
 
     describe('#_removeStaleContainer', function () {
-        let stubRemove: SinonStub<Parameters<typeof fs.remove>>;
+        let stubRemove: MockInstance;
 
         beforeEach(function () {
-            stubRemove = stub(fs, 'remove').resolves();
-            runCommandStub.reset();
-            runCommandStub.resolves();
+            stubRemove = fs.remove as unknown as MockInstance;
+            stubRemove.mockResolvedValue(undefined);
+            runCommandMock.mockResolvedValue(undefined);
         });
 
-        afterEach(function () {
-            stubRemove.restore();
-        });
-
-        context('when cid file exists', function () {
-            let stubReadFile: SinonStub<Parameters<typeof fs.readFile>>;
+        describe('when cid file exists', function () {
+            let stubReadFile: MockInstance;
 
             beforeEach(function () {
-                stubReadFile = stub(fs, 'readFile').resolves('123');
-            });
-
-            afterEach(function () {
-                stubReadFile.restore();
+                stubReadFile = fs.readFile as unknown as MockInstance;
+                stubReadFile.mockResolvedValue('123');
             });
 
             it('must remove stale container', function () {
                 const docker = new Docker('my-image');
 
                 return docker._removeStaleContainer().then(() => {
-                    expect(stubReadFile.calledWith(docker.cidfile)).to.eql(true);
-                    expect(stubRemove.calledWith(docker.cidfile)).to.eql(true);
-                    expect(runCommandStub.calledWith(['docker', 'stop', '123'])).to.eql(true);
-                    expect(runCommandStub.calledWith(['docker', 'rm', '123'])).to.eql(true);
+                    expect(stubReadFile).toHaveBeenCalledWith(docker.cidfile);
+                    expect(stubRemove).toHaveBeenCalledWith(docker.cidfile);
+                    expect(runCommandMock).toHaveBeenCalledWith(['docker', 'stop', '123']);
+                    expect(runCommandMock).toHaveBeenCalledWith(['docker', 'rm', '123']);
                 });
             });
         });
 
-        context('when cid file does not exist', function () {
-            let stubReadFile: SinonStub<Parameters<typeof fs.readFile>>;
+        describe('when cid file does not exist', function () {
+            let stubReadFile: MockInstance;
 
             beforeEach(function () {
-                stubReadFile = stub(fs, 'readFile').rejects();
-            });
-
-            afterEach(function () {
-                stubReadFile.restore();
+                stubReadFile = fs.readFile as unknown as MockInstance;
+                stubReadFile.mockRejectedValue(new Error('File not found'));
             });
 
             it('must attempt to remove stale container', function () {
                 const docker = new Docker('my-image');
 
                 return docker._removeStaleContainer().catch(() => {
-                    expect(stubReadFile.calledWith(docker.cidfile)).to.eql(true);
-                    expect(stubRemove.calledWith(docker.cidfile)).to.eql(true);
-                    expect(runCommandStub.called).to.eql(false);
+                    expect(stubReadFile).toHaveBeenCalledWith(docker.cidfile);
+                    expect(stubRemove).toHaveBeenCalledWith(docker.cidfile);
+                    expect(runCommandMock).not.toHaveBeenCalled();
                 });
             });
         });
@@ -352,59 +319,55 @@ describe('Docker', function () {
 
     describe('#_pullImage', function () {
         beforeEach(function () {
-            runCommandStub.reset();
-            runCommandStub.resolves();
+            runCommandMock.mockResolvedValue(undefined);
         });
 
         it('must call runCommand', function () {
             const docker = new Docker('my-image');
             return docker._pullImage().then(() => {
-                expect(runCommandStub.calledWith(['docker', 'pull', 'my-image'])).to.eql(true);
+                expect(runCommandMock).toHaveBeenCalledWith(['docker', 'pull', 'my-image']);
             });
         });
     });
 
     describe('#_isImagePresent', function () {
         beforeEach(function () {
-            runCommandStub.reset();
-            runCommandStub.resolves();
+            runCommandMock.mockResolvedValue(undefined);
         });
 
         it('must call runCommand', function () {
             const docker = new Docker('my-image');
             return docker._isImagePresent().then(() => {
-                expect(runCommandStub.calledWith(['docker', 'inspect', 'my-image'])).to.eql(true);
+                expect(runCommandMock).toHaveBeenCalledWith(['docker', 'inspect', 'my-image']);
             });
         });
     });
 
     describe('#_reportWhenDockerIsRunning', function () {
-        context('when healthCheck is not set', function () {
+        describe('when healthCheck is not set', function () {
             beforeEach(function () {
-                pingStub.reset();
-                pingStub.rejects();
+                pingMock.mockRejectedValue(new Error('Ping failed'));
             });
 
             it('must resolve promise right away', async function () {
                 const docker = new Docker('my-image');
 
                 await docker._reportWhenDockerIsRunning();
-                expect(pingStub.called).to.eql(false);
+                expect(pingMock).not.toHaveBeenCalled();
             });
         });
 
-        context('when healthCheck is provided', function () {
+        describe('when healthCheck is provided', function () {
             const newUrl = new URL('http://localhost:8080');
-            let spyClearTimeout: SinonSpy<Parameters<typeof global.clearTimeout>>;
+            let spyClearTimeout: MockInstance;
 
             beforeEach(function () {
-                pingStub.reset();
-                pingStub.resolves();
-                spyClearTimeout = spy(global, 'clearTimeout');
+                pingMock.mockResolvedValue(undefined);
+                spyClearTimeout = vi.spyOn(global, 'clearTimeout');
             });
 
             afterEach(function () {
-                spyClearTimeout.restore();
+                spyClearTimeout.mockRestore();
             });
 
             it('must Ping the healthCheck url', function () {
@@ -413,23 +376,22 @@ describe('Docker', function () {
                 });
 
                 return docker._reportWhenDockerIsRunning().then(() => {
-                    expect(spyClearTimeout.called).to.eql(true);
-                    expect(pingStub.calledWith(newUrl)).to.eql(true);
+                    expect(spyClearTimeout).toHaveBeenCalled();
+                    expect(pingMock).toHaveBeenCalledWith(newUrl);
                 });
             });
         });
 
-        context('when maxRetries is specified and url is unreachable', function () {
-            let spyClearTimeout: SinonSpy<Parameters<typeof global.clearTimeout>>;
+        describe('when maxRetries is specified and url is unreachable', function () {
+            let spyClearTimeout: MockInstance;
 
             beforeEach(function () {
-                pingStub.reset();
-                pingStub.rejects();
-                spyClearTimeout = spy(global, 'clearTimeout');
+                pingMock.mockRejectedValue(new Error('Ping failed'));
+                spyClearTimeout = vi.spyOn(global, 'clearTimeout');
             });
 
             afterEach(function () {
-                spyClearTimeout.restore();
+                spyClearTimeout.mockRestore();
             });
 
             it('must Ping same number of times as maxRetries', function () {
@@ -440,27 +402,24 @@ describe('Docker', function () {
                     },
                 });
 
-                this.timeout(15000);
-
                 return docker._reportWhenDockerIsRunning().catch(() => {
-                    expect(spyClearTimeout.called).to.eql(true);
-                    expect(pingStub.calledThrice).to.eql(true);
+                    expect(spyClearTimeout).toHaveBeenCalled();
+                    expect(pingMock).toHaveBeenCalledTimes(3);
                 });
-            });
+            }, 15000);
         });
 
-        context('when healthCheck is provided but is unreachable', function () {
+        describe('when healthCheck is provided but is unreachable', function () {
             const newUrl = new URL('http://localhost:8080');
-            let spyClearTimeout: SinonSpy<Parameters<typeof global.clearTimeout>>;
+            let spyClearTimeout: MockInstance;
 
             beforeEach(function () {
-                pingStub.reset();
-                pingStub.rejects();
-                spyClearTimeout = spy(global, 'clearTimeout');
+                pingMock.mockRejectedValue(new Error('Ping failed'));
+                spyClearTimeout = vi.spyOn(global, 'clearTimeout');
             });
 
             afterEach(function () {
-                spyClearTimeout.restore();
+                spyClearTimeout.mockRestore();
             });
 
             it('must attempt to ping healthCheck url and then exit', async function () {
@@ -468,15 +427,13 @@ describe('Docker', function () {
                     healthCheck: newUrl.href,
                 });
 
-                this.timeout(15000);
-
                 try {
                     await docker._reportWhenDockerIsRunning();
                 } catch {
-                    expect(spyClearTimeout.called).to.eql(true);
-                    expect(pingStub.calledWith(newUrl)).to.eql(true);
+                    expect(spyClearTimeout).toHaveBeenCalled();
+                    expect(pingMock).toHaveBeenCalledWith(newUrl);
                 }
-            });
+            }, 15000);
        });
     });
 });
