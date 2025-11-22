@@ -1,16 +1,17 @@
-import fs from 'fs-extra';
-import logger from '@wdio/logger';
-import { SevereServiceError } from 'webdriverio';
-import getFilePath from './utils/getFilePath.js';
-import Docker, { DockerArgs, DockerForTests } from './utils/docker.js';
+import fs from 'fs-extra'
+import logger from '@wdio/logger'
+import { SevereServiceError } from 'webdriverio'
+import getFilePath from './utils/getFilePath.js'
+import type { DockerArgs, DockerForTests } from './utils/docker.js'
+import Docker from './utils/docker.js'
 
-import type { Services, Options, Capabilities } from '@wdio/types';
-import type { WebDriverLogTypes } from '@wdio/types/build/Options.js';
+import type { Services, Options, Capabilities } from '@wdio/types'
+import type { WebDriverLogTypes } from '@wdio/types/build/Options.js'
 
-const DEFAULT_LOG_FILENAME = 'docker-log.txt';
-const LoggerService = logger('wdio-docker-service');
+const DEFAULT_LOG_FILENAME = 'docker-log.txt'
+const LoggerService = logger('wdio-docker-service')
 
-export interface DockerLauncherConfig extends WebdriverIO.Config { 
+export interface DockerLauncherConfig extends WebdriverIO.Config {
     dockerOptions: DockerArgs & { image: string };
     logToStdout?: boolean;
     dockerLogs?: string | null;
@@ -20,25 +21,25 @@ export interface DockerLauncherConfig extends WebdriverIO.Config {
 }
 
 class DockerLauncher implements Services.ServiceInstance {
-    logToStdout?: boolean;
-    docker?: Docker | null;
-    dockerLogs?: string | null;
-    watchMode?: boolean;
+    logToStdout?: boolean
+    docker?: Docker | null
+    dockerLogs?: string | null
+    watchMode?: boolean
 
     constructor(
         _options?: Services.ServiceOption,
         _capabilities?: Capabilities.ResolvedTestrunnerCapabilities,
         _config?: Options.WebdriverIO
     ) {
-        this.logToStdout = false;
-        this.docker = null;
-        this.dockerLogs = null;
+        this.logToStdout = false
+        this.docker = null
+        this.dockerLogs = null
     }
 
     onPrepare(config: DockerLauncherConfig) {
-        this.logToStdout = config.logToStdout;
-        this.dockerLogs = config.dockerLogs;
-        this.watchMode = !!config.watch;
+        this.logToStdout = config.logToStdout
+        this.dockerLogs = config.dockerLogs
+        this.watchMode = !!config.watch
 
         const {
             dockerOptions: {
@@ -50,14 +51,14 @@ class DockerLauncher implements Services.ServiceInstance {
             },
             onDockerReady,
             logLevel
-        } = config;
+        } = config
 
         if (!image) {
-            throw new SevereServiceError('dockerOptions.image is a required property');
+            throw new SevereServiceError('dockerOptions.image is a required property')
         }
 
         if (logLevel) {
-            LoggerService.setLevel(logLevel);
+            LoggerService.setLevel(logLevel)
         }
 
         this.docker = new Docker(image, {
@@ -66,58 +67,58 @@ class DockerLauncher implements Services.ServiceInstance {
             healthCheck,
             options,
             debug: !!logLevel && logLevel === 'debug'
-        }, LoggerService);
+        }, LoggerService)
 
         if (typeof this.dockerLogs === 'string') {
-            const logFile = getFilePath(this.dockerLogs, DEFAULT_LOG_FILENAME);
+            const logFile = getFilePath(this.dockerLogs, DEFAULT_LOG_FILENAME)
 
             this.docker.once('processCreated', () => {
-                this._redirectLogStream(logFile);
-            });
+                this._redirectLogStream(logFile)
+            })
         }
 
         return this.docker.run()
             .then(() => {
                 if (typeof onDockerReady === 'function') {
-                    onDockerReady();
+                    onDockerReady()
                 }
             })
             .catch((err) => {
-                LoggerService.error(`Failed to run container: ${(err as Record<string, unknown>).message}`);
-                this.docker?.stop();
-            });
+                LoggerService.error(`Failed to run container: ${(err as Record<string, unknown>).message}`)
+                this.docker?.stop()
+            })
     }
 
     onComplete() {
         // do not stop docker if in watch mode
         if (!this.watchMode && this.docker) {
-            return this.docker.stop();
+            return this.docker.stop()
         }
     }
 
     afterSession() {
         if (this.docker?.process?.connected) {
-            this.docker.stop();
+            this.docker.stop()
         }
     }
 
     _redirectLogStream(logFile: string) {
         // ensure file & directory exists
         return fs.ensureFile(logFile).then(() => {
-            const logStream = fs.createWriteStream(logFile, { flags: 'w' });
+            const logStream = fs.createWriteStream(logFile, { flags: 'w' })
 
-            this.docker?.process?.stdout?.pipe(logStream);
-            this.docker?.process?.stderr?.pipe(logStream);
-        });
+            this.docker?.process?.stdout?.pipe(logStream)
+            this.docker?.process?.stderr?.pipe(logStream)
+        })
     }
 }
 
 class DockerLauncherForTests extends DockerLauncher {
-    public declare logToStdout?: boolean;
-    public declare docker?: DockerForTests | null;
-    public declare dockerLogs?: string | null;
-    public declare watchMode?: boolean;
+    public declare logToStdout?: boolean
+    public declare docker?: DockerForTests | null
+    public declare dockerLogs?: string | null
+    public declare watchMode?: boolean
 }
 
-export default DockerLauncher;
-export { DockerLauncherForTests };
+export default DockerLauncher
+export { DockerLauncherForTests }

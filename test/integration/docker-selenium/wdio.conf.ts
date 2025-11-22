@@ -1,4 +1,5 @@
-import DockerLauncher, { DockerLauncherConfig } from '@root/launcher.ts';
+import type { DockerLauncherConfig } from '@root/launcher.ts'
+import DockerLauncher from '@root/launcher.ts'
 
 export const config: DockerLauncherConfig = {
     port: 4444,
@@ -39,4 +40,4 @@ export const config: DockerLauncherConfig = {
             env: ['SE_NODE_MAX_SESSION=4', 'SE_NODE_OVERRIDE_MAX_SESSION=true'],
         },
     }
-};
+}

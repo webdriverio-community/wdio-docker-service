@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+
 module.exports = {
     extensions: ['ts'],
     spec: 'test/unit/**/*.ts',
@@ -6,4 +6,4 @@ module.exports = {
     import: ['tsx/esm'],
     exit: true,
     timeout: 10000,
-};
+}

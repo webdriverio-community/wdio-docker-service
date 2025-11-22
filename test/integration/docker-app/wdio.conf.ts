@@ -1,8 +1,9 @@
-import * as url from 'url';
-import { join } from 'path';
-import DockerLauncher, { DockerLauncherConfig } from '@root/launcher.ts';
+import * as url from 'node:url'
+import { join } from 'node:path'
+import type { DockerLauncherConfig } from '@root/launcher.ts'
+import DockerLauncher from '@root/launcher.ts'
 
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 export const config: DockerLauncherConfig = {
     specs: ['*.spec.ts'],
@@ -51,4 +52,4 @@ export const config: DockerLauncherConfig = {
             healthInterval: '5s'
         }
     }
-};
+}

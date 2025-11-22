@@ -1,11 +1,12 @@
-import eslint from '@eslint/js';
-import wdioEslint from '@wdio/eslint';
-import tslint from 'typescript-eslint';
+import eslint from '@eslint/js'
+import wdioEslint from '@wdio/eslint'
+import tslint from 'typescript-eslint'
+import globals from 'globals'
 
 export default wdioEslint.config(
     eslint.configs.recommended,
     ...tslint.configs.recommended,
-    { 
+    {
         name: 'global-ignores',
         ignores: [
             'lib',
@@ -38,18 +39,17 @@ export default wdioEslint.config(
             indent: ['error', 4],
             'linebreak-style': ['error', 'unix'],
             quotes: ['error', 'single'],
-            semi: ['error', 'always'],
             'no-console': [0],
-            "@typescript-eslint/no-unused-vars": [
-                "error",
+            '@typescript-eslint/no-unused-vars': [
+                'error',
                 {
-                    "args": "all",
-                    "argsIgnorePattern": "^_",
-                    "caughtErrors": "all",
-                    "caughtErrorsIgnorePattern": "^_",
-                    "destructuredArrayIgnorePattern": "^_",
-                    "varsIgnorePattern": "^_",
-                    "ignoreRestSiblings": true
+                    'args': 'all',
+                    'argsIgnorePattern': '^_',
+                    'caughtErrors': 'all',
+                    'caughtErrorsIgnorePattern': '^_',
+                    'destructuredArrayIgnorePattern': '^_',
+                    'varsIgnorePattern': '^_',
+                    'ignoreRestSiblings': true
                 }
             ]
         },
@@ -67,8 +67,6 @@ export default wdioEslint.config(
         languageOptions: {
             globals: {
                 ...globals.browser,
-                ...globals.mocha,
-                ...globals.chai,
             },
         },
         rules: {
@@ -76,4 +74,4 @@ export default wdioEslint.config(
             '@typescript-eslint/no-unused-vars': 'off',
         }
     },
-);
+)

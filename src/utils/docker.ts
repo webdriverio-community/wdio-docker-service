@@ -1,22 +1,22 @@
-import { ChildProcess } from 'child_process';
-import { EventEmitter } from 'events';
-import fs from 'fs-extra';
-import path from 'path';
+import type { ChildProcess } from 'node:child_process'
+import { EventEmitter } from 'node:events'
+import fs from 'fs-extra'
+import path from 'node:path'
 
-import { Ping } from './ping.js';
-import deepMerge from './deepMerge.js';
-import serializeOptions from './optionsSerializer.js';
-import { runCommand, runProcess } from './childProcess.js';
-import DockerEventsListener from './dockerEventsListener.js';
+import { Ping } from './ping.js'
+import deepMerge from './deepMerge.js'
+import serializeOptions from './optionsSerializer.js'
+import { runCommand, runProcess } from './childProcess.js'
+import DockerEventsListener from './dockerEventsListener.js'
 
-import type { Logger } from '@wdio/logger';
+import type { Logger } from '@wdio/logger'
 
-const SPACE = ' ';
-const INSPECT_DOCKER_INTERVAL = 500;
-const MAX_INSPECT_ATTEMPTS = 10;
+const SPACE = ' '
+const INSPECT_DOCKER_INTERVAL = 500
+const MAX_INSPECT_ATTEMPTS = 10
 const DEFAULT_OPTIONS = {
     rm: true,
-};
+}
 
 type HealthCheckArgs = {
     /** url to an app running inside your container */
@@ -27,7 +27,7 @@ type HealthCheckArgs = {
     inspectInterval?: number;
     /** initial delay to begin healthcheck in ms. Default: 0 */
     startDelay?: number;
-};
+}
 
 export type DockerRunArgs = {
     /** Add a custom host-to-IP mapping (host:ip) */
@@ -165,7 +165,7 @@ export type DockerRunArgs = {
     volumeDriver?: string;
     volumesFrom?: string[];
     workdir?: string;
-};
+}
 
 export interface DockerArgs {
     /** Docker run options */
@@ -184,17 +184,17 @@ export interface DockerArgs {
  * @class {Docker} Provides functionality to run docker container
  */
 class Docker extends EventEmitter {
-    protected args?: string;
-    protected cidfile: string;
-    protected command?: string;
-    protected debug: boolean;
-    protected healthCheck?: string | HealthCheckArgs | Record<string, never>;
-    protected image: string;
-    protected logger: Logger | Console;
-    public process: null | ChildProcess;
-    protected dockerEventsListener: DockerEventsListener;
-    protected dockerRunCommand: string[];
-    protected options: Record<string, unknown>;
+    protected args?: string
+    protected cidfile: string
+    protected command?: string
+    protected debug: boolean
+    protected healthCheck?: string | HealthCheckArgs | Record<string, never>
+    protected image: string
+    protected logger: Logger | Console
+    public process: null | ChildProcess
+    protected dockerEventsListener: DockerEventsListener
+    protected dockerRunCommand: string[]
+    protected options: Record<string, unknown>
 
     constructor(
         /** Docker image/tag name */
@@ -209,27 +209,27 @@ class Docker extends EventEmitter {
         /** Logger or console */
         logger: Logger | Console = console
     ) {
-        super();
+        super()
 
         if (!image) {
-            throw new Error('Missing required image argument');
+            throw new Error('Missing required image argument')
         }
 
-        this.args = args;
+        this.args = args
         this.cidfile = path.join(
             process.cwd(),
             `${image.replace(/\W+/g, '_')}.cid`
-        );
-        this.command = command;
-        this.debug = debug;
-        this.healthCheck = healthCheck;
-        this.image = image;
-        this.logger = logger;
-        this.process = null;
-        this.dockerEventsListener = new DockerEventsListener(logger);
+        )
+        this.command = command
+        this.debug = debug
+        this.healthCheck = healthCheck
+        this.image = image
+        this.logger = logger
+        this.process = null
+        this.dockerEventsListener = new DockerEventsListener(logger)
 
         if (typeof healthCheck === 'string') {
-            this.healthCheck = { url: healthCheck };
+            this.healthCheck = { url: healthCheck }
         }
 
         this.options = deepMerge(
@@ -238,95 +238,95 @@ class Docker extends EventEmitter {
             },
             DEFAULT_OPTIONS,
             options
-        );
+        )
 
         const cmdChain = ['docker', 'run'].concat(
             serializeOptions(this.options),
             [this.image]
-        );
+        )
 
         if (this.command) {
-            cmdChain.push(this.command);
+            cmdChain.push(this.command)
         }
 
         if (this.args) {
             // check if args are in camelcase and convert to kebab case and assign to new variable to satisfy docker argument format
-            const argsArray = this.args.split(' ');
+            const argsArray = this.args.split(' ')
             const argsArrayKebab = argsArray.map((arg) => {
                 if (arg.includes('--')) {
-                    return arg;
+                    return arg
                 }
-                return arg.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
-            });
-            const args = argsArrayKebab.join(' ');
-            cmdChain.push(args);
+                return arg.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
+            })
+            const args = argsArrayKebab.join(' ')
+            cmdChain.push(args)
         }
 
-        this.dockerRunCommand = cmdChain;
+        this.dockerRunCommand = cmdChain
     }
 
     async run() {
-        this.logger.log(`Docker command: ${this.dockerRunCommand.join(SPACE)}`);
+        this.logger.log(`Docker command: ${this.dockerRunCommand.join(SPACE)}`)
         this.dockerEventsListener.connect({
             filter: `image=${this.image}`,
-        });
+        })
 
         if (this.debug) {
             this.dockerEventsListener.once('image.pull', (event) => {
                 this.logger.info(
                     'Pulling image:',
                     JSON.stringify(event, null, 4)
-                );
-            });
+                )
+            })
         }
 
-        await this._removeStaleContainer();
+        await this._removeStaleContainer()
 
         try {
-            await this._isImagePresent();
+            await this._isImagePresent()
         } catch {
-            this.logger.warn('NOTE: Pulling image for the first time. Please be patient.');
-            return this._pullImage();
+            this.logger.warn('NOTE: Pulling image for the first time. Please be patient.')
+            return this._pullImage()
         }
 
-        this.logger.info(`Launching docker image '${this.image}'`);
-        const process = await runProcess(this.dockerRunCommand);
-        this.process = process;
-        this.emit('processCreated');
+        this.logger.info(`Launching docker image '${this.image}'`)
+        const process = await runProcess(this.dockerRunCommand)
+        this.process = process
+        this.emit('processCreated')
 
         if (this.debug) {
             this.process.stdout?.on('data', (data) => {
-                this.logger.log(data.toString());
-            });
+                this.logger.log(data.toString())
+            })
 
             this.process.stderr?.on('data', (data) => {
-                this.logger.error(data.toString());
-            });
+                this.logger.error(data.toString())
+            })
 
             this.dockerEventsListener.once('container.start', (event) => {
-                this.logger.info('Container started:', JSON.stringify(event, null, 4));
-            });
+                this.logger.info('Container started:', JSON.stringify(event, null, 4))
+            })
 
             this.dockerEventsListener.once('container.stop', (event) => {
-                this.logger.info('Container stopped:', JSON.stringify(event, null, 4));
-            });
+                this.logger.info('Container stopped:', JSON.stringify(event, null, 4))
+            })
         }
 
-        await this._reportWhenDockerIsRunning();
-        this.logger.info('Docker container is ready ✅');
-        return process;
+        await this._reportWhenDockerIsRunning()
+        this.logger.info('Docker container is ready ✅')
+        return process
     }
 
     async stop() {
-        await this._removeStaleContainer();
-        
+        await this._removeStaleContainer()
+
         if (this.process) {
-            this.process.kill();
-            this.process = null;
+            this.process.kill()
+            this.process = null
         }
 
-        this.logger.info('Docker container has stopped');
-        this.dockerEventsListener.disconnect();
+        this.logger.info('Docker container has stopped')
+        this.dockerEventsListener.disconnect()
     }
 
     /**
@@ -338,65 +338,65 @@ class Docker extends EventEmitter {
             maxRetries = MAX_INSPECT_ATTEMPTS,
             inspectInterval = INSPECT_DOCKER_INTERVAL,
             startDelay = 0,
-        } = this.healthCheck as HealthCheckArgs;
+        } = this.healthCheck as HealthCheckArgs
 
         if (url === undefined) {
-            return 'No health check URL provided';
+            return 'No health check URL provided'
         }
 
         const waitForDockerHealthCheck = new Promise<void>((resolve) => {
             this.dockerEventsListener.on('container.health_status', (event) => {
                 if (event.args === 'healthy') {
-                    resolve();
+                    resolve()
                 }
-            });
-        });
+            })
+        })
 
         const waitForHealthCheckPoll = Docker.delay(startDelay).then(
             () =>
                 new Promise<void>((resolve, reject) => {
-                    let attempts = 0;
-                    let pollstatus: NodeJS.Timeout | number | null = null;
+                    let attempts = 0
+                    let pollstatus: NodeJS.Timeout | number | null = null
 
                     const poll = () => {
                         Ping(new URL(url))
                             .then(() => {
-                                resolve();
-                                clearTimeout(pollstatus as number);
-                                pollstatus = null;
+                                resolve()
+                                clearTimeout(pollstatus as number)
+                                pollstatus = null
                             })
                             .catch((err) => {
-                                attempts++;
+                                attempts++
                                 if (attempts >= maxRetries) {
-                                    clearTimeout(pollstatus as number);
-                                    pollstatus = null;
-                                    reject(err);
-                                    return;
+                                    clearTimeout(pollstatus as number)
+                                    pollstatus = null
+                                    reject(err)
+                                    return
                                 }
 
-                                pollstatus = setTimeout(poll, inspectInterval);
-                            });
-                    };
+                                pollstatus = setTimeout(poll, inspectInterval)
+                            })
+                    }
 
-                    pollstatus = setTimeout(poll, inspectInterval);
+                    pollstatus = setTimeout(poll, inspectInterval)
                 })
-        );
+        )
 
-        return Promise.race([waitForDockerHealthCheck, waitForHealthCheckPoll]);
+        return Promise.race([waitForDockerHealthCheck, waitForHealthCheckPoll])
     }
 
     /**
      * Checks if docker image is present
      */
     protected _isImagePresent() {
-        return runCommand(['docker', 'inspect', this.image]);
+        return runCommand(['docker', 'inspect', this.image])
     }
 
     /**
      * Pulls an image from docker registry
      */
     protected _pullImage() {
-        return runCommand(['docker', 'pull', this.image]);
+        return runCommand(['docker', 'pull', this.image])
     }
 
     /**
@@ -404,31 +404,31 @@ class Docker extends EventEmitter {
      */
     async _removeStaleContainer() {
         try {
-            this.logger.info('🧹🧹 Cleaning up stale docker files 🧹🧹');
-            const cid = await fs.readFile(this.cidfile);
-            this.logger.info('1. Shutting down running container ⏱');
-            await Docker.stopContainer(cid.toString());
-            await Docker.removeContainer(cid.toString());
+            this.logger.info('🧹🧹 Cleaning up stale docker files 🧹🧹')
+            const cid = await fs.readFile(this.cidfile)
+            this.logger.info('1. Shutting down running container ⏱')
+            await Docker.stopContainer(cid.toString())
+            await Docker.removeContainer(cid.toString())
         } catch {
-            this.logger.info('No stale container found ✅');
+            this.logger.info('No stale container found ✅')
         }
 
-        this.logger.info('2. Cleaning up CID files 🧹');
-        await fs.remove(this.cidfile);
+        this.logger.info('2. Cleaning up CID files 🧹')
+        await fs.remove(this.cidfile)
     }
 
     static delay(timeMs: number) {
         return new Promise((resolve) => {
-            setTimeout(resolve, timeMs);
-        });
+            setTimeout(resolve, timeMs)
+        })
     }
 
     static stopContainer(/** Container ID */ cid: string) {
-        return runCommand(['docker', 'stop', cid]);
+        return runCommand(['docker', 'stop', cid])
     }
 
     static removeContainer(/** Container ID */ cid: string) {
-        return runCommand(['docker', 'rm', cid]);
+        return runCommand(['docker', 'rm', cid])
     }
 }
 
@@ -444,21 +444,21 @@ type CommandResult = {
 }
 
 class DockerForTests extends Docker {
-    declare public args?: string;
-    declare public cidfile: string;
-    declare public command?: string;
-    declare public debug: boolean;
-    declare public healthCheck?: string | HealthCheckArgs | Record<string, never>;
-    declare public image: string;
-    declare public logger: Logger | Console;
-    declare public process: null | ChildProcess;
-    declare public dockerEventsListener: DockerEventsListener;
-    declare public dockerRunCommand: string[];
-    declare public options: Record<string, unknown>;
-    declare public _reportWhenDockerIsRunning: () => Promise<void>;
-    declare public _isImagePresent: () => Promise<CommandResult>;
-    declare public _pullImage: () => Promise<CommandResult>;
+    declare public args?: string
+    declare public cidfile: string
+    declare public command?: string
+    declare public debug: boolean
+    declare public healthCheck?: string | HealthCheckArgs | Record<string, never>
+    declare public image: string
+    declare public logger: Logger | Console
+    declare public process: null | ChildProcess
+    declare public dockerEventsListener: DockerEventsListener
+    declare public dockerRunCommand: string[]
+    declare public options: Record<string, unknown>
+    declare public _reportWhenDockerIsRunning: () => Promise<void>
+    declare public _isImagePresent: () => Promise<CommandResult>
+    declare public _pullImage: () => Promise<CommandResult>
 }
 
-export default Docker;
-export { DockerForTests };
+export default Docker
+export { DockerForTests }

@@ -1,14 +1,14 @@
-import fetch from 'node-fetch';
+import fetch from 'node-fetch'
 
 function Ping(url: URL) {
-    return fetch(url);
+    return fetch(url)
 }
 
 class PingClass {
     Ping(url: URL) {
-        return fetch(url);
+        return fetch(url)
     }
 }
 
-export default PingClass;
-export { Ping };
+export default PingClass
+export { Ping }

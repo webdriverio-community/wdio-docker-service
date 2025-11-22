@@ -1,13 +1,14 @@
-import { exec, ChildProcess } from 'child_process';
-import serializeOptions from '../utils/optionsSerializer.js';
-import deepMerge from '../utils/deepMerge.js';
+import type { ChildProcess } from 'node:child_process'
+import { exec } from 'node:child_process'
+import serializeOptions from '../utils/optionsSerializer.js'
+import deepMerge from '../utils/deepMerge.js'
 
-const NANOSECONDS = 1000000;
+const NANOSECONDS = 1000000
 const DEFAULT_OPTIONS = {
     format: '"{{json .}}"',
-};
+}
 
-const CMD = 'docker events';
+const CMD = 'docker events'
 
 type EventData = {
     Action: string;
@@ -18,12 +19,12 @@ type EventData = {
     status: string;
     timeNano: number;
     Type: string;
-};
+}
 
 export interface ProcessLike {
     connected?: boolean;
-    send?(message: any): boolean;
-    on(event: string, listener: (...args: any[]) => void): any;
+    send?(message: unknown): boolean;
+    on(event: string, listener: (...args: unknown[]) => void): unknown;
 }
 
 const DockerEvents = {
@@ -33,47 +34,47 @@ const DockerEvents = {
      * @param {Object} [options]
      */
     async init(options: Record<string, unknown> = {}) {
-        const cmdOptions = deepMerge({}, DEFAULT_OPTIONS, options);
-        const cmd = [CMD].concat(serializeOptions(cmdOptions)).join(' ');
-        const buffer: unknown[] = [];
-        const ps = exec(cmd);
+        const cmdOptions = deepMerge({}, DEFAULT_OPTIONS, options)
+        const cmd = [CMD].concat(serializeOptions(cmdOptions)).join(' ')
+        const buffer: unknown[] = []
+        const ps = exec(cmd)
 
         /**
          * Capture stdout
          */
-        ps.stdout?.setEncoding('utf-8');
+        ps.stdout?.setEncoding('utf-8')
         ps.stdout?.on('data', (data) => {
-            buffer.push(data);
-            const jsonString = buffer.join('');
-            const json = this._tryParse(jsonString);
+            buffer.push(data)
+            const jsonString = buffer.join('')
+            const json = this._tryParse(jsonString)
 
             if (json) {
-                buffer.length = 0;
-                this._parseEventData(json);
+                buffer.length = 0
+                this._parseEventData(json)
             }
-        });
+        })
 
         /**
          * Capture stderr
          */
-        let errorMessage = '';
+        let errorMessage = ''
 
         ps.stderr?.on('data', (data) => {
-            errorMessage += data;
-        });
+            errorMessage += data
+        })
 
         //Handle sub-process exit
-        ps.on('exit', (code) => this._onExit(code || 0, cmd, errorMessage));
+        ps.on('exit', (code) => this._onExit(code || 0, cmd, errorMessage))
 
         //Handle forked process disconnect
-        this.parentProcess.on('disconnect', () => this._onDisconnect());
+        this.parentProcess.on('disconnect', () => this._onDisconnect())
 
-        this.process = ps;
+        this.process = ps
     },
 
     _onDisconnect() {
-        this.process?.kill();
-        this.process = null;
+        this.process?.kill()
+        this.process = null
     },
 
     /**
@@ -89,13 +90,13 @@ const DockerEvents = {
                 message: `Error executing sub-child: ${cmd}${
                     errorMsg ? `\n${errorMsg}` : ''
                 }`,
-            });
+            })
         }
     },
 
     _parseEventData(jsonData: EventData) {
         if (!jsonData) {
-            return;
+            return
         }
 
         const {
@@ -107,14 +108,14 @@ const DockerEvents = {
             status = '',
             timeNano,
             Type,
-        } = jsonData;
+        } = jsonData
 
-        const [action] = Action.split(':');
-        const eventType = `${Type}.${action}`;
+        const [action] = Action.split(':')
+        const eventType = `${Type}.${action}`
         const args =
             status.indexOf(':') !== -1
                 ? status.slice(status.indexOf(':') + 1).trim()
-                : '';
+                : ''
         if (this.parentProcess.connected) {
             this.parentProcess.send?.({
                 args,
@@ -127,21 +128,21 @@ const DockerEvents = {
                     scope,
                     actor: Actor,
                 },
-            });
+            })
         }
     },
 
     _tryParse(text: string) {
         try {
-            return JSON.parse(text);
+            return JSON.parse(text)
         } catch {
-            return null;
+            return null
         }
     },
-};
+}
 
 process.on('message', (options) => {
-    DockerEvents.init(options as Record<string, unknown>);
-});
+    DockerEvents.init(options as Record<string, unknown>)
+})
 
-export default DockerEvents;
+export default DockerEvents

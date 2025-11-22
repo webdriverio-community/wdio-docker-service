@@ -1,3 +1,3 @@
-import DockerLauncher from './launcher.js';
+import DockerLauncher from './launcher.js'
 
-export default DockerLauncher;
+export default DockerLauncher
