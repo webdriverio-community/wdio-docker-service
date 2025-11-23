@@ -50,5 +50,20 @@ export const config: DockerLauncherConfig = {
             ],
             noHealthcheck: true
         }
-    }
+    },
+    beforeSession: async () => {
+        if (process.env.CI) {
+            const { execSync } = await import('node:child_process')
+            try {
+                console.log('--- DEBUG INFO ---')
+                console.log('Running containers:')
+                console.log(execSync('docker ps').toString())
+                console.log('Testing connection to localhost:8080:')
+                console.log(execSync('curl -v http://127.0.0.1:8080').toString())
+                console.log('--- END DEBUG INFO ---')
+            } catch (err) {
+                console.log('Debug check failed:', err)
+            }
+        }
+    },
 }
