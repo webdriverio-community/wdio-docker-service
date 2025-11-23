@@ -22,7 +22,7 @@ export const config: DockerLauncherConfig = {
         }
     }],
 
-    baseUrl: 'http://127.0.0.1:8080',
+    baseUrl: 'http://host.docker.internal:8080',
     logLevel: 'debug',
 
     waitforTimeout: 10000,
