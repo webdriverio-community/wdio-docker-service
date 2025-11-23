@@ -54,7 +54,7 @@ export const config: DockerLauncherConfig = {
             healthInterval: '5s',
             healthTimeout: '10s',
             healthRetries: 3,
-            healthStartPeriod: '0s',
+            healthStartPeriod: '2s',
         },
     }
 }

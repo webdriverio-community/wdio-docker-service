@@ -27,6 +27,13 @@ jobs:
         run: chmod 644 test/integration/docker-app/nginx.conf
       - name: Run Tests
         run: npm test
+      - name: Debug Nginx failure
+        if: always()
+        run: |
+          echo "=== Docker Containers ==="
+          docker ps -a
+          echo "=== Nginx Logs ==="
+          docker logs $(docker ps -aq | head -n 1)
 
     # The Workflow will run for hours on failure without a timeout. The duration is an estimate.
-    timeout-minutes: 10
+    timeout-minutes: 5
