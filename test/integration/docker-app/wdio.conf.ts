@@ -4,7 +4,7 @@ import type { DockerLauncherConfig } from '@root/launcher.ts'
 import DockerLauncher from '@root/launcher.ts'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-const host = process.env.CI ? '127.0.0.1' : 'host.docker.internal'
+const host = process.env.CI ? 'localhost' : 'host.docker.internal'
 
 export const config: DockerLauncherConfig = {
     specs: ['*.spec.ts'],
@@ -48,10 +48,7 @@ export const config: DockerLauncherConfig = {
                 `${join(__dirname, '/app/')}:/usr/share/nginx/html:ro`,
                 `${join(__dirname, '/nginx.conf')}:/etc/nginx/nginx.conf:ro`
             ],
-            healthCmd: '"curl -sS http://localhost:8080 || exit 1"',
-            healthTimeout: '10s',
-            healthRetries: 3,
-            healthInterval: '5s'
+            noHealthcheck: true
         }
     }
 }

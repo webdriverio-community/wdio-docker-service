@@ -1,7 +1,7 @@
 import type { DockerLauncherConfig } from '@root/launcher.ts'
 import DockerLauncher from '@root/launcher.ts'
 
-const host = process.env.CI ? '127.0.0.1' : 'host.docker.internal'
+const host = process.env.CI ? 'localhost' : 'host.docker.internal'
 
 export const config: DockerLauncherConfig = {
     port: 4444,
@@ -41,6 +41,7 @@ export const config: DockerLauncherConfig = {
             p: ['4444:4444'],
             shmSize: '2g',
             env: ['SE_NODE_MAX_SESSION=4', 'SE_NODE_OVERRIDE_MAX_SESSION=true'],
+            noHealthcheck: true
         },
     }
 }
