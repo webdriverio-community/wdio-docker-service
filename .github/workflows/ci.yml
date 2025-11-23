@@ -27,13 +27,43 @@ jobs:
         run: chmod 644 test/integration/docker-app/nginx.conf
       - name: Run Tests
         run: npm test
-      - name: Debug Nginx failure
-        if: always()
+      - name: Manual Nginx Verification
         run: |
-          echo "=== Docker Containers ==="
-          docker ps -a
-          echo "=== Nginx Logs ==="
-          docker logs $(docker ps -aq | head -n 1)
+          echo "1. Testing Nginx Config Syntax..."
+          # This simulates exactly how WDIO mounts the file
+          docker run --rm \
+            -v ${{ github.workspace }}/test/integration/docker-app/nginx.conf:/etc/nginx/nginx.conf:ro \
+            nginx nginx -t
+
+          echo "------------------------------------------------"
+          echo "2. Attempting to start container manually..."
+          # Run detached to see if it stays alive
+          docker run -d --name debug-nginx \
+            --network host \
+            -v ${{ github.workspace }}/test/integration/docker-app/app/:/usr/share/nginx/html:ro \
+            -v ${{ github.workspace }}/test/integration/docker-app/nginx.conf:/etc/nginx/nginx.conf:ro \
+            nginx
+
+          echo "3. Waiting 5 seconds..."
+          sleep 5
+
+          echo "4. Checking Container Status..."
+          if [ "$(docker ps -q -f name=debug-nginx)" ]; then
+            echo "✅ Container is running!"
+            echo "5. Testing Connectivity..."
+            curl -v http://127.0.0.1:8080
+          else
+            echo "❌ Container died! Here are the logs:"
+            docker logs debug-nginx
+            exit 1
+          fi
+
+          echo "6. Cleaning up..."
+          docker stop debug-nginx || true
+          docker rm debug-nginx || true
+
+      - name: Run Tests
+        run: npm test
 
     # The Workflow will run for hours on failure without a timeout. The duration is an estimate.
     timeout-minutes: 5
