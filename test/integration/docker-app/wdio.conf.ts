@@ -50,9 +50,10 @@ export const config: DockerLauncherConfig = {
                 `${join(__dirname, '/app/')}:/usr/share/nginx/html:ro`,
                 `${join(__dirname, '/nginx.conf')}:/etc/nginx/nginx.conf:ro`,
             ],
-            healthStartPeriod: '5s',
-            healthInterval: '2s',
-            healthRetries: 45,
+            healthCmd: 'curl -f http://127.0.0.1:8080 || exit 1',
+            healthStartPeriod: '10s',
+            healthInterval: '5s',
+            healthRetries: 12,
             rm: false,
         },
     }
