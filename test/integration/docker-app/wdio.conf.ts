@@ -4,6 +4,7 @@ import type { DockerLauncherConfig } from '@root/launcher.ts'
 import DockerLauncher from '@root/launcher.ts'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+const host = process.env.CI ? '127.0.0.1' : 'host.docker.internal'
 
 export const config: DockerLauncherConfig = {
     specs: ['*.spec.ts'],
@@ -22,7 +23,7 @@ export const config: DockerLauncherConfig = {
         }
     }],
 
-    baseUrl: 'http://host.docker.internal:8080',
+    baseUrl: `http://${host}:8080`,
     logLevel: 'debug',
 
     waitforTimeout: 10000,
@@ -38,7 +39,7 @@ export const config: DockerLauncherConfig = {
     dockerLogs: './',
     dockerOptions: {
         image: 'nginx',
-        healthCheck: 'http://host.docker.internal:8080',
+        healthCheck: `http://${host}:8080`,
         options: {
             addHost: ['host.docker.internal:host-gateway'],
             p: ['8080:8080'],

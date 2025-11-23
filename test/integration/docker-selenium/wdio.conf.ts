@@ -1,6 +1,8 @@
 import type { DockerLauncherConfig } from '@root/launcher.ts'
 import DockerLauncher from '@root/launcher.ts'
 
+const host = process.env.CI ? '127.0.0.1' : 'host.docker.internal'
+
 export const config: DockerLauncherConfig = {
     port: 4444,
     specs: ['./*.spec.ts'],
@@ -33,7 +35,7 @@ export const config: DockerLauncherConfig = {
     dockerLogs: './',
     dockerOptions: {
         image: 'selenium/standalone-chrome:136.0.7103.113-20251101',
-        healthCheck: 'http://host.docker.internal:4444',
+        healthCheck: `http://${host}:4444`,
         options: {
             addHost: ['host.docker.internal:host-gateway'],
             p: ['4444:4444'],
