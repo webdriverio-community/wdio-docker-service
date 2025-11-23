@@ -322,6 +322,9 @@ class Docker extends EventEmitter {
 
         if (this.process) {
             this.process.kill()
+            if (this.process.unref) {
+                this.process.unref()
+            }
             this.process = null
         }
 
