@@ -286,7 +286,7 @@ class Docker extends EventEmitter {
             await this._isImagePresent()
         } catch {
             this.logger.warn('NOTE: Pulling image for the first time. Please be patient.')
-            return this._pullImage()
+            await this._pullImage()
         }
 
         this.logger.info(`Launching docker image '${this.image}'`)
