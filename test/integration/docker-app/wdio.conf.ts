@@ -41,7 +41,11 @@ export const config: DockerLauncherConfig = {
     dockerLogs: './',
     dockerOptions: {
         image: 'nginx',
-        healthCheck: `http://${host}:8080`,
+        healthCheck: {
+            url: `http://${host}:8080`,
+            inspectInterval: 1000,
+            maxRetries: 100,
+        },
         options: {
             // Use host networking only on CI
             ...(isCI ? { network: 'host' as const } : { p: ['8080:8080'] }),
