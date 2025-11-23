@@ -361,15 +361,9 @@ describe('Docker', function () {
 
         describe('when healthCheck is provided', function () {
             const newUrl = new URL('http://localhost:8080')
-            let spyClearTimeout: MockInstance
 
             beforeEach(function () {
                 pingMock.mockResolvedValue(undefined)
-                spyClearTimeout = vi.spyOn(global, 'clearTimeout')
-            })
-
-            afterEach(function () {
-                spyClearTimeout.mockRestore()
             })
 
             it('must Ping the healthCheck url', function () {
@@ -378,7 +372,6 @@ describe('Docker', function () {
                 })
 
                 return docker._reportWhenDockerIsRunning().then(() => {
-                    expect(spyClearTimeout).toHaveBeenCalled()
                     expect(pingMock).toHaveBeenCalledWith(newUrl)
                 })
             })

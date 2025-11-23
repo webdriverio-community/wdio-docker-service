@@ -355,20 +355,24 @@ class Docker extends EventEmitter {
             () =>
                 new Promise<void>((resolve, reject) => {
                     let attempts = 0
-                    let pollstatus: NodeJS.Timeout | number | null = null
+                    let pollstatus: NodeJS.Timeout | null = null
 
                     const poll = () => {
+                        attempts++
                         Ping(new URL(url))
                             .then(() => {
+                                if (pollstatus) {
+                                    clearTimeout(pollstatus)
+                                    pollstatus = null
+                                }
                                 resolve()
-                                clearTimeout(pollstatus as number)
-                                pollstatus = null
                             })
                             .catch((err) => {
-                                attempts++
                                 if (attempts >= maxRetries) {
-                                    clearTimeout(pollstatus as number)
-                                    pollstatus = null
+                                    if (pollstatus) {
+                                        clearTimeout(pollstatus)
+                                        pollstatus = null
+                                    }
                                     reject(err)
                                     return
                                 }
@@ -377,7 +381,7 @@ class Docker extends EventEmitter {
                             })
                     }
 
-                    pollstatus = setTimeout(poll, inspectInterval)
+                    poll()
                 })
         )
 
