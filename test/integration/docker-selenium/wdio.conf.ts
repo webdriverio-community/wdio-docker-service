@@ -1,7 +1,8 @@
 import type { DockerLauncherConfig } from '@root/launcher.ts'
 import DockerLauncher from '@root/launcher.ts'
 
-const host = process.env.CI ? '127.0.0.1' : 'host.docker.internal'
+const isCI = !!process.env.CI
+const host = isCI ? '127.0.0.1' : 'host.docker.internal'
 
 export const config: DockerLauncherConfig = {
     port: 4444,
