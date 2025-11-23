@@ -23,8 +23,8 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build --if-present
-      - name: Pre-pull Docker Image
-        run: docker pull nginx:latest
+      # - name: Pre-pull Docker Image
+        # run: docker pull nginx:latest
       - name: Run Tests
         run: npm test
 
