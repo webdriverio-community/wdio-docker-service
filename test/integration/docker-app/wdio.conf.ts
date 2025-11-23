@@ -41,13 +41,8 @@ export const config: DockerLauncherConfig = {
     dockerLogs: './',
     dockerOptions: {
         image: 'nginx',
-        healthCheck: {
-            url: `http://${host}:8080`,
-            inspectInterval: 1000,
-            maxRetries: 100,
-        },
+        healthCheck: `http://${host}:8080`,
         options: {
-            // Use host networking only on CI
             ...(isCI ? { network: 'host' as const } : { p: ['8080:8080'] }),
             shmSize: '2g',
             v: [
@@ -55,10 +50,9 @@ export const config: DockerLauncherConfig = {
                 `${join(__dirname, '/nginx.conf')}:/etc/nginx/nginx.conf:ro`,
             ],
             healthCmd: 'curl -f http://127.0.0.1:8080 || exit 1',
-            healthStartPeriod: '10s',
-            healthInterval: '5s',
-            healthRetries: 12,
-            rm: false,
+            healthStartPeriod: '5s',
+            healthInterval: '2s',
+            healthRetries: 5,
         },
     }
 }

@@ -43,9 +43,9 @@ export const config: DockerLauncherConfig = {
             shmSize: '2g',
             env: ['SE_NODE_MAX_SESSION=4', 'SE_NODE_OVERRIDE_MAX_SESSION=true'],
             healthCmd: 'curl -f http://127.0.0.1:4444 || exit 1',
-            healthStartPeriod: '10s',
-            healthInterval: '5s',
-            healthRetries: 12,
+            healthStartPeriod: '5s',
+            healthInterval: '2s',
+            healthRetries: 5,
         },
     }
 }
