@@ -23,6 +23,8 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build --if-present
+      - name: Fix permissions for Nginx config
+        run: chmod 644 test/integration/docker-app/nginx.conf
       - name: Run Tests
         run: npm test
 
