@@ -128,17 +128,21 @@ describe('DockerEvents module', function () {
 
     describe('#_onDisconnect', function () {
         let killSpy: MockInstance
+        let unrefSpy: MockInstance
 
         beforeEach(function () {
             killSpy = vi.fn()
+            unrefSpy = vi.fn()
             DockerEvents.process = {
-                kill: killSpy
+                kill: killSpy,
+                unref: unrefSpy
             } as unknown as typeof DockerEvents['process']
         })
 
         it('must kill sub-process', function () {
             DockerEvents._onDisconnect()
             expect(killSpy).toHaveBeenCalled()
+            expect(unrefSpy).toHaveBeenCalled()
             expect(DockerEvents.process).toBeNull()
         })
     })

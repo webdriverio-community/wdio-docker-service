@@ -137,8 +137,10 @@ describe('Docker', function () {
 
     describe('#stop', function () {
         const killSpy = vi.fn()
+        const unrefSpy = vi.fn()
         const mockProcess = {
             kill: killSpy,
+            unref: unrefSpy,
         }
         let stubRemoveStaleContainer: MockInstance
         let stubDisconnect: MockInstance

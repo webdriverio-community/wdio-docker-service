@@ -16,6 +16,8 @@ class MockForkedProcess extends ChildProcess {
         this.disconnect = vi.fn().mockImplementation(() => {
             this.connected = false
         })
+        this.kill = vi.fn()
+        this.unref = vi.fn()
     }
 
     mockError(error = 'mock error') {

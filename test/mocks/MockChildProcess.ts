@@ -10,6 +10,7 @@ class MockChildProcess extends EventEmitter {
     stdout: Readable
     stderr: Readable
     kill: unknown
+    unref: unknown
 
     constructor(
         cmd: Parameters<typeof spawn>['0'],
@@ -28,6 +29,7 @@ class MockChildProcess extends EventEmitter {
         this.stderr = new EventEmitter() as unknown as Readable
 
         this.kill = vi.fn()
+        this.unref = vi.fn()
     }
 
     mockError(error = 'mock error') {

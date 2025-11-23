@@ -45,6 +45,7 @@ class DockerEventsListener extends EventEmitter {
         if (this._subprocess && this._subprocess.connected) {
             this.logger.warn('Disconnecting dockerEventsListener:', this._subprocess.pid)
             this._subprocess.disconnect()
+            this._subprocess.kill()
         }
         this._subprocess = null
     }
