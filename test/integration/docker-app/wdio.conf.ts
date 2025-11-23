@@ -51,7 +51,7 @@ export const config: DockerLauncherConfig = {
             noHealthcheck: true
         }
     },
-    beforeSession: async () => {
+    onDockerReady: async () => {
         if (process.env.CI) {
             const { execSync } = await import('node:child_process')
             try {
