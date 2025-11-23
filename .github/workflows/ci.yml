@@ -23,26 +23,10 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build --if-present
-      - name: Check Docker
-        run: |
-          docker version
-          docker ps -a
+      - name: Fix permissions for Nginx config
+        run: chmod 644 test/integration/docker-app/nginx.conf
       - name: Run Tests
         run: npm test
-      - name: Debug Docker after Tests
-        if: failure()
-        run: |
-          echo "===== docker ps -a ====="
-          docker ps -a || true
-          echo "===== docker logs (nginx containers) ====="
-          for id in $(docker ps -a --filter "ancestor=nginx" --format "{{.ID}}"); do
-            echo "--- logs for container $id ---"
-            docker logs "$id" || true
-          done
-          echo "===== docker images ====="
-          docker images || true
-          echo "===== curl http://127.0.0.1:8080 ====="
-          curl -v --max-time 10 http://127.0.0.1:8080 || true
 
     # The Workflow will run for hours on failure without a timeout. The duration is an estimate.
-    timeout-minutes: 4
+    timeout-minutes: 10
