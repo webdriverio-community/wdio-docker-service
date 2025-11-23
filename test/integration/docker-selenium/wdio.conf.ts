@@ -41,7 +41,6 @@ export const config: DockerLauncherConfig = {
             p: ['4444:4444'],
             shmSize: '2g',
             env: ['SE_NODE_MAX_SESSION=4', 'SE_NODE_OVERRIDE_MAX_SESSION=true'],
-            noHealthcheck: true
         },
     }
 }

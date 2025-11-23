@@ -4,7 +4,8 @@ import type { DockerLauncherConfig } from '@root/launcher.ts'
 import DockerLauncher from '@root/launcher.ts'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-const host = process.env.CI ? '127.0.0.1' : 'host.docker.internal'
+const isCI = !!process.env.CI
+const host = isCI ? '127.0.0.1' : 'host.docker.internal'
 
 export const config: DockerLauncherConfig = {
     specs: ['*.spec.ts'],
@@ -41,29 +42,19 @@ export const config: DockerLauncherConfig = {
         image: 'nginx',
         healthCheck: `http://${host}:8080`,
         options: {
-            addHost: ['host.docker.internal:host-gateway'],
-            p: ['8080:8080'],
+            // Use host networking only on CI
+            ...(isCI ? { network: 'host' as const } : { p: ['8080:8080'] }),
             shmSize: '2g',
             v: [
                 `${join(__dirname, '/app/')}:/usr/share/nginx/html:ro`,
-                `${join(__dirname, '/nginx.conf')}:/etc/nginx/nginx.conf:ro`
+                `${join(__dirname, '/nginx.conf')}:/etc/nginx/nginx.conf:ro`,
             ],
-            noHealthcheck: true
-        }
-    },
-    onDockerReady: async () => {
-        if (process.env.CI) {
-            const { execSync } = await import('node:child_process')
-            try {
-                console.log('--- DEBUG INFO ---')
-                console.log('Running containers:')
-                console.log(execSync('docker ps').toString())
-                console.log('Testing connection to localhost:8080:')
-                console.log(execSync('curl -v http://127.0.0.1:8080').toString())
-                console.log('--- END DEBUG INFO ---')
-            } catch (err) {
-                console.log('Debug check failed:', err)
-            }
-        }
-    },
+            // internal health check inside container to ensure Nginx is up
+            healthCmd: 'curl -f http://localhost:8080 || exit 1',
+            healthInterval: '5s',
+            healthTimeout: '10s',
+            healthRetries: 3,
+            healthStartPeriod: '5s',
+        },
+    }
 }
