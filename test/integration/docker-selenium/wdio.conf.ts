@@ -32,9 +32,10 @@ export const config: DockerLauncherConfig = {
     services: [[DockerLauncher, {}]],
     dockerLogs: './',
     dockerOptions: {
-        image: 'selenium/standalone-chrome:129.0.6668.100',
+        image: 'selenium/standalone-chrome:136.0.7103.113-20251101',
         healthCheck: 'http://host.docker.internal:4444',
         options: {
+            addHost: ['host.docker.internal:host-gateway'],
             p: ['4444:4444'],
             shmSize: '2g',
             env: ['SE_NODE_MAX_SESSION=4', 'SE_NODE_OVERRIDE_MAX_SESSION=true'],

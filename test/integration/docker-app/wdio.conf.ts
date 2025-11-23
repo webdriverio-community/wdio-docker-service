@@ -40,13 +40,14 @@ export const config: DockerLauncherConfig = {
         image: 'nginx',
         healthCheck: 'http://host.docker.internal:8080',
         options: {
+            addHost: ['host.docker.internal:host-gateway'],
             p: ['8080:8080'],
             shmSize: '2g',
             v: [
                 `${join(__dirname, '/app/')}:/usr/share/nginx/html:ro`,
                 `${join(__dirname, '/nginx.conf')}:/etc/nginx/nginx.conf:ro`
             ],
-            healthCmd: '"curl -sS http://127.0.0.1:8080 || exit 1"',
+            healthCmd: '"curl -sS http://host.docker.internal:8080 || exit 1"',
             healthTimeout: '10s',
             healthRetries: 3,
             healthInterval: '5s'
