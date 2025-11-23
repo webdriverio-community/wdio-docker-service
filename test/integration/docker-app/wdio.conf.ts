@@ -50,11 +50,12 @@ export const config: DockerLauncherConfig = {
                 `${join(__dirname, '/nginx.conf')}:/etc/nginx/nginx.conf:ro`,
             ],
             // internal health check inside container to ensure Nginx is up
-            healthCmd: 'curl -f http://127.0.0.1:8080 || wget --no-verbose --tries=1 --spider http://127.0.0.1:8080 || exit 1',
+            healthCmd: 'curl -f http://[::1]:8080 || wget --no-verbose --tries=1 --spider http://[::1]:8080 || exit 1',
             healthInterval: '5s',
             healthTimeout: '10s',
             healthRetries: 3,
             healthStartPeriod: '2s',
+            rm: false,
         },
     }
 }
