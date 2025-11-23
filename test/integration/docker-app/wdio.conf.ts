@@ -4,7 +4,7 @@ import type { DockerLauncherConfig } from '@root/launcher.ts'
 import DockerLauncher from '@root/launcher.ts'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
-const host = process.env.CI ? 'localhost' : 'host.docker.internal'
+const host = process.env.CI ? '127.0.0.1' : 'host.docker.internal'
 
 export const config: DockerLauncherConfig = {
     specs: ['*.spec.ts'],
