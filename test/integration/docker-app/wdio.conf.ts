@@ -50,6 +50,7 @@ export const config: DockerLauncherConfig = {
                 `${join(__dirname, '/app/')}:/usr/share/nginx/html:ro`,
                 `${join(__dirname, '/nginx.conf')}:/etc/nginx/nginx.conf:ro`,
             ],
+            rm: false,
         },
     }
 }
