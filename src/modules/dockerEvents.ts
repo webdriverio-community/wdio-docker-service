@@ -74,6 +74,7 @@ const DockerEvents = {
 
     _onDisconnect() {
         this.process?.kill()
+        this.process?.unref()
         this.process = null
     },
 

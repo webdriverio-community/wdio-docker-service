@@ -320,13 +320,9 @@ class Docker extends EventEmitter {
     async stop() {
         await this._removeStaleContainer()
 
-        if (this.process) {
-            this.process.kill()
-            if (this.process.unref) {
-                this.process.unref()
-            }
-            this.process = null
-        }
+        this.process?.kill()
+        this.process?.unref()
+        this.process = null
 
         this.logger.info('Docker container has stopped')
         this.dockerEventsListener.disconnect()
