@@ -45,4 +45,4 @@ jobs:
           curl -v --max-time 10 http://127.0.0.1:8080 || true
 
     # The Workflow will run for hours on failure without a timeout. The duration is an estimate.
-    timeout-minutes: 10
+    timeout-minutes: 4
