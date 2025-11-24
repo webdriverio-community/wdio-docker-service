@@ -1,0 +1,15 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "allowImportingTsExtensions": true,
+        "allowArbitraryExtensions": true,
+        "noEmit": true,
+        "baseUrl": "./",
+        "paths": {
+            "@root/*": ["../src/*"],
+            "@test/*": ["./*"]
+        },
+        "rootDirs": [".", "../src"],
+    },
+    "include": [".", "../src"]
+}

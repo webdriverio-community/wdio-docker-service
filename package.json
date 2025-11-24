@@ -9,16 +9,30 @@
   "bugs": {
     "url": "https://github.com/stsvilik/wdio-docker-service/issues"
   },
-  "main": "index.js",
+  "type": "module",
+  "main": "./lib/cjs/index.js",
+  "module": "./lib/index.js",
+  "exports": {
+    ".": [
+      {
+        "import": "./lib/index.js",
+        "require": "./lib/cjs/index.js"
+      },
+      "./lib/cjs/index.js"
+    ]
+  },
+  "types": "./lib/index.d.ts",
+  "engines": {
+    "node": ">=20 || >=22"
+  },
   "scripts": {
     "prepublishOnly": "rm -rf ./lib && npm run build",
-    "build": "babel ./src --out-dir ./lib",
-    "build:dev": "rm -rf ./lib && babel ./src --out-dir ./lib -s",
-    "lint": "eslint -c .eslintrc.json src test",
-    "test": "npm run lint && npm run test:unit && npm run test:integration",
-    "test:unit": "nyc mocha --require @babel/register --recursive ./test/unit",
-    "test:app": "wdio test/integration/docker-app/wdio.conf.js",
-    "test:selenium": "wdio test/integration/docker-selenium/wdio.conf.js",
+    "build": "tsc",
+    "build:dev": "rm -rf ./lib && tsc --sourceMap",
+    "test": "eslint && npm run test:unit && npm run test:integration",
+    "test:unit": "vitest run",
+    "test:app": "TSX_TSCONFIG_PATH=./test/tsconfig.json wdio ./test/integration/docker-app/wdio.conf.ts",
+    "test:selenium": "TSX_TSCONFIG_PATH=./test/tsconfig.json wdio ./test/integration/docker-selenium/wdio.conf.ts",
     "test:integration": "run-s build:dev test:app test:selenium"
   },
   "keywords": [
@@ -31,47 +45,32 @@
   "author": "Simon Tsvilik",
   "license": "MIT",
   "devDependencies": {
-    "@babel/cli": "^7.21.0",
-    "@babel/core": "^7.21.4",
-    "@babel/preset-env": "^7.21.4",
-    "@babel/register": "^7.21.0",
-    "@wdio/cli": "^7.30.2",
-    "@wdio/local-runner": "^7.30.2",
-    "@wdio/mocha-framework": "^7.30.2",
-    "@wdio/selenium-standalone-service": "^7.30.2",
-    "@wdio/spec-reporter": "^7.30.2",
-    "chai": "^4.3.7",
-    "chromedriver": "^119.0.1",
-    "coveralls": "^3.1.1",
-    "eslint": "^8.38.0",
-    "mocha": "^10.2.0",
+    "@swc/core": "^1.15.3",
+    "@types/fs-extra": "^11.0.4",
+    "@types/node-fetch": "^2.6.13",
+    "@vitest/coverage-v8": "^4.0.13",
+    "@wdio/cli": "^9.20.1",
+    "@wdio/eslint": "^0.1.2",
+    "@wdio/local-runner": "^9.20.1",
+    "@wdio/mocha-framework": "^9.20.1",
+    "@wdio/spec-reporter": "^9.20.0",
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0",
     "npm-run-all": "^4.1.5",
-    "nyc": "^15.1.0",
-    "sinon": "^15.0.3",
-    "wdio-chromedriver-service": "^8.1.1",
-    "webdriverio": "^7.30.2"
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.47.0",
+    "vitest": "^4.0.13",
+    "webdriverio": "^9.20.1"
   },
   "dependencies": {
-    "@wdio/logger": "^7.26.0",
-    "fs-extra": "^11.1.1",
-    "node-fetch": "^2.6.9"
+    "@wdio/logger": "^9.18.0",
+    "fs-extra": "^11.3.2",
+    "node-fetch": "^3.3.2"
   },
   "contributors": [
-    "Simon Tsvilik <webdevsimon@gmail.com>"
-  ],
-  "nyc": {
-    "exclude": [
-      "index.js",
-      "launcher.js",
-      "lib",
-      "test"
-    ],
-    "require": [
-      "@babel/register"
-    ],
-    "sourceMap": false,
-    "instrument": true,
-    "cache": false,
-    "all": true
-  }
+    "Simon Tsvilik <webdevsimon@gmail.com>",
+    "Keno Clayton <keno.clayton15@gmail.com>"
+  ]
 }

@@ -1,0 +1,34 @@
+{
+    "compilerOptions": {
+        "target": "ES2020",
+        "module": "Node16",
+        "lib": ["ES2020"],
+        "strict": true,
+        "baseUrl": "src",
+        "outDir": "./lib",
+        "moduleResolution": "Node16",
+        "paths": {
+            "@/*": ["./*"],
+        },
+        "noEmitOnError": true,
+        "declaration": true,
+        "declarationMap": true,
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "types": [
+            "node",
+            "@wdio/globals/types",
+            "@wdio/mocha-framework"
+        ],
+        "typeRoots": ["./node_modules", "./node_modules/@types"],
+    },
+    "ts-node": {
+        "files": true,
+        "esm": true,
+        "swc": true,
+        "experimentalResolver": true
+    },
+    "include": ["./src/**/*", "./src/cjs/package.json"],
+    "exclude": ["./node_modules/**", "./lib/**/*"]
+}
