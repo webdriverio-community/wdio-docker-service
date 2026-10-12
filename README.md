@@ -3,6 +3,11 @@ WDIO Docker Service [![Maintainability](https://api.codeclimate.com/v1/badges/fa
 [![Test Coverage](https://api.codeclimate.com/v1/badges/fa04188e6558671dbd9e/test_coverage)](https://codeclimate.com/github/stsvilik/wdio-docker-service/test_coverage)
 ===
 
+> [!IMPORTANT]
+> **This repository does not support WebdriverIO v10.** It stays in maintenance mode for WebdriverIO v9 only.
+>
+> It gets no new features. Only critical fixes for WebdriverIO v9 are possible.
+
 This service is intended for use with [WebdriverIO](http://webdriver.io/) and it helps run functional/integration tests 
 against/using containerized applications. It uses popular [Docker](https://www.docker.com/) service (installed separately) to run containers.
 
